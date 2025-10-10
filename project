@@ -1,0 +1,161 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAX_DAUSACH = 10000;
+
+struct Sach {
+    char MASACH[16];
+    int trangthai;
+    char vitri[51];
+};
+
+struct nodeSach {
+    Sach data;
+    nodeSach *next;
+};
+typedef nodeSach* SACH;
+
+struct DauSach {
+    char ISBN[21];
+    char TENSACH[101];
+    int SOTRANG;
+    char TACGIA[51];
+    int NAMXUATBAN;
+    char THELOAI[31];
+    SACH FirstSach = NULL;
+};
+
+struct DS_DAUSACH {
+    int n = 0;
+    DauSach *nodes[MAX_DAUSACH];
+};  
+
+struct Date{
+    int day;
+    int month;
+    int year;
+};
+
+struct MuonTra {
+    char MASACH[16];
+    char NgayMuon[11];
+    char NgayTra[11];
+    int trangthai;
+};
+
+struct nodeMuonTra {
+    MuonTra mt;
+    nodeMuonTra *next;
+};
+typedef nodeMuonTra* MT;
+
+struct TheDocGia {
+    int MATHE;
+    int sum=0;
+    char HO[51];
+    char TEN[31];
+    char PHAI[4];
+    int trangthai = 1; // 0: bi khoa , 1: hoat dong;
+    MT dsmuontra = NULL;
+};
+
+struct nodeDocGia {
+    TheDocGia dg;
+    nodeDocGia *left, *right;
+};
+typedef nodeDocGia* TreeDocGia;
+TreeDocGia taothedocgia (){
+     TheDocGia a ;
+    srand(time(0));
+    a.MATHE = 1000 + rand() % (10000 - 1000);
+    cout << "Ho : "; cin >> a.HO;
+    
+    cout << "Ten: ";cin >> a.TEN;
+    int x;
+    cout << "Phai : 1.NAM , 2 NU "; cin >> x ;
+    if(x == 1){
+        strcpy(a.PHAI, "NAM");
+    }
+    if(x==2){
+        strcpy(a.PHAI, "NU");
+    }
+    for(int i = 0 ; i < a.HO[i]!='\0';i++){
+        a.sum += a.HO[i];
+    }
+    for(int i = 0 ; i < a.TEN[i]!='\0';i++){
+        a.sum += a.TEN[i];
+    }
+     TreeDocGia tmp = new nodeDocGia();
+     tmp->dg = a;
+     tmp->left =NULL;
+     tmp->right = NULL;
+     return tmp;
+};
+void in(TheDocGia  a){
+    cout << a.MATHE <<endl;
+    cout << a.HO <<" "<<a.TEN<<endl;
+    cout <<a.PHAI <<endl;
+};
+void caythedocgia(TreeDocGia & a,TreeDocGia p){
+    if (a ==NULL){
+           a = p ;
+    }
+    if(a->dg.MATHE > p->dg.MATHE){
+        caythedocgia(a->left,p);
+    }
+     if(a->dg.MATHE <= p->dg.MATHE){
+        caythedocgia(a->right,p);
+     }
+};
+void caythehoten(TreeDocGia &a,TreeDocGia p){
+    if (a==NULL){
+           a = p ;
+    }
+    if(a->dg.sum > p->dg.sum){
+        caythedocgia(a->left,p);
+    }
+    if(a->dg.sum <= p->dg.sum) {
+        caythedocgia(a->right,p);
+    }
+};
+void incay(TreeDocGia a){
+    if (a==nullptr){
+        return;
+    }
+    incay(a->left);
+    in(a->dg);
+    incay(a->right);
+};
+int main() {
+    DS_DAUSACH dsdausach;
+    TreeDocGia dsdocgia = NULL;
+    TreeDocGia dshoten = NULL;
+    while(1){
+        cout << "1. nhập thẻ độc giả"<<endl;
+        cout << "2.in DS thẻ độc giả "<<endl;
+        int lc; cin >>lc;
+        if(lc == 1){
+            TreeDocGia tmp = taothedocgia();
+            TreeDocGia tmp2 = new nodeDocGia;
+            tmp2->dg = tmp->dg;
+            tmp2->left = tmp2->right = NULL;
+            caythedocgia(dsdocgia,tmp);
+            caythehoten(dshoten,tmp2);
+        }
+        else if(lc == 2){
+            int x;
+            cout << "1.in theo mã thẻ "<<endl;
+            cout << "2.in theo ho va ten "<<endl;
+            cin >> x;
+            if(x == 1 ){
+                incay(dsdocgia);
+            }
+            else if(x==2){
+                incay(dshoten);
+            }
+        }
+    }
+    // dsdocgia = taothedocgia();
+    // in(dsdocgia);
+    return 0;
+}
