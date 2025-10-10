@@ -54,6 +54,7 @@ typedef nodeMuonTra* MT;
 
 struct TheDocGia {
     int MATHE;
+    int sum = 0; // Minh
     char HO[51];
     char TEN[31];
     char PHAI[4];
@@ -67,6 +68,71 @@ struct nodeDocGia {
 };
 typedef nodeDocGia* TreeDocGia;
 
+//Câu a, maybe b
+TreeDocGia taothedocgia (){
+     TheDocGia a ;
+    srand(time(0));
+    a.MATHE = 1000 + rand() % (10000 - 1000);
+    cout << "Ho : "; cin >> a.HO;
+    
+    cout << "Ten: ";cin >> a.TEN;
+    int x;
+    cout << "Phai : 1.NAM , 2 NU "; cin >> x ;
+    if(x == 1){
+        strcpy(a.PHAI, "NAM");
+    }
+    if(x==2){
+        strcpy(a.PHAI, "NU");
+    }
+    for(int i = 0 ; i < a.HO[i]!='\0';i++){
+        a.sum += a.HO[i];
+    }
+    for(int i = 0 ; i < a.TEN[i]!='\0';i++){
+        a.sum += a.TEN[i];
+    }
+     TreeDocGia tmp = new nodeDocGia();
+     tmp->dg = a;
+     tmp->left =NULL;
+     tmp->right = NULL;
+     return tmp;
+};
+void in(TheDocGia  a){
+    cout << a.MATHE <<endl;
+    cout << a.HO <<" "<<a.TEN<<endl;
+    cout <<a.PHAI <<endl;
+};
+void caythedocgia(TreeDocGia & a,TreeDocGia p){
+    if (a ==NULL){
+           a = p ;
+    }
+    if(a->dg.MATHE > p->dg.MATHE){
+        caythedocgia(a->left,p);
+    }
+     if(a->dg.MATHE <= p->dg.MATHE){
+        caythedocgia(a->right,p);
+     }
+};
+void caythehoten(TreeDocGia &a,TreeDocGia p){
+    if (a==NULL){
+           a = p ;
+    }
+    if(a->dg.sum > p->dg.sum){
+        caythedocgia(a->left,p);
+    }
+    if(a->dg.sum <= p->dg.sum) {
+        caythedocgia(a->right,p);
+    }
+};
+void incay(TreeDocGia a){
+    if (a==nullptr){
+        return;
+    }
+    incay(a->left);
+    in(a->dg);
+    incay(a->right);
+};
+
+//Câu C
 string randomMaSach(){ // tạo mã sách có 6 chữ số
     string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     string result;
@@ -129,7 +195,7 @@ void NhapDauSach(DS_DAUSACH &ds_dausach){
         
         cout << "Da tao sach voi ma: " << maSach << endl;
     }
-    
+
     int viTriChen = ds_dausach.n;
     for(int i = 0; i < ds_dausach.n; i++){
         if(strcmp(p->TENSACH, ds_dausach.nodes[i]->TENSACH) < 0){
