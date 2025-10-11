@@ -74,10 +74,10 @@ TreeDocGia taothedocgia (){
     int x;
     cout << "Phai : 1.NAM , 2 NU "; cin >> x ;
     if(x == 1){
-        strcpy(a.PHAI, "NAM");
+        strcpy(a.PHAI, "Nam");
     }
     if(x==2){
-        strcpy(a.PHAI, "NU");
+        strcpy(a.PHAI, "Nu");
     }
     for(int i = 0 ; i < a.HO[i]!='\0';i++){
         a.sum += a.HO[i];
@@ -155,28 +155,42 @@ void xoathe(TreeDocGia& a, int x ){
     if(a==NULL){
         return;
     }
-    if(a->dg.MATHE > x){
-        xoathe(a->left,x);
-    }
-    else if (a->dg.MATHE < x){
+        xoathe(a->left,x); 
         xoathe(a->right,x);
-    }
-    else{
-        TreeDocGia p = a;
-        if(p->left == NULL){
-            p = p->right;
+       if(a->dg.MATHE== x){ 
+        if(a->left == NULL){
+            TreeDocGia p = a;
+            a = a->right;
             delete p;
 
         }
-        else if(p->right == NULL){
-            p = p->right;
+        else if(a->right == NULL){
+            TreeDocGia p = a;
+            a = a->left;
             delete p;
         }
+        else if(a->right == NULL&& a->left == NULL){
+                delete a;
+                a = nullptr;
+           }
         else {
+            TreeDocGia p = a;
             xoanode2la(a->right,p);
             delete p;
         }
         return;
+    }
+};
+ void dieuchinhmathe(TreeDocGia& a , TheDocGia &tmp){
+    if(a==NULL){
+        return ;
+    }
+    dieuchinhmathe(a->left,tmp);
+    dieuchinhmathe(a->right,tmp);
+    if(a->dg.MATHE == tmp.MATHE){
+       a->dg = tmp;
+       cout << "chỉnh thành công "<<endl;
+       return ;
     }
 };
 int main() {
@@ -188,7 +202,8 @@ int main() {
         cout << "2.in DS thẻ độc giả theo maso "<<endl;
         cout << "3.in DS thẻ độc giả theo ho ten "<<endl;
         cout << "4.Khoa thẻ độc giả "<<endl;
-        // cout << "5.xóa thẻ độc giả "<<endl;
+        cout << "5.xóa thẻ độc giả "<<endl;
+        cout << "6.điều chỉnh thẻ độc giả "<<endl;
         int lc; cin >>lc;
         if(lc == 1){
             TreeDocGia tmp = taothedocgia();
@@ -210,14 +225,31 @@ int main() {
           khoathe(dsdocgia,x);
           khoathe(dshoten,x);
         }
-        // else if(lc == 5){
-        //     cout <<"ma the muon khoa "<<endl;
-        //     int x ; cin >>x;
-        //    xoathe(dsdocgia,x);
-        // }
+        else if(lc == 5){
+            cout <<"ma the muon khoa "<<endl;
+            int x ; cin >>x;
+           xoathe(dsdocgia,x);
+           xoathe(dshoten,x);
+        }
+        else if(lc == 6){
+            TheDocGia tmp;
+            cout <<"ma the muon dieu chinh "<<endl;
+            cin >> tmp.MATHE;
+            cout << "New Ho : "; cin >> tmp.HO;
+    
+    cout << "New Ten: ";cin >> tmp.TEN;
+    int g;
+    cout << "New Phai : 1.NAM , 2 NU "; cin >> g ;
+    if(g == 1){
+        strcpy(tmp.PHAI, "Nam");
+    }
+    if(g==2){
+        strcpy(tmp.PHAI, "Nu");
+    }       
+           dieuchinhmathe(dsdocgia,tmp);
+           dieuchinhmathe(dshoten,tmp);
+        }
     }
     // dsdocgia = taothedocgia();
     // in(dsdocgia);
-
-
 }
