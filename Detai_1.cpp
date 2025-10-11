@@ -73,11 +73,11 @@ TreeDocGia taothedocgia (){
      TheDocGia a ;
     srand(time(0));
     a.MATHE = 1000 + rand() % (10000 - 1000);
-    cout << "Ho : "; cin >> a.HO;
+    cout << "Ho: "; cin >> a.HO;
     
     cout << "Ten: ";cin >> a.TEN;
     int x;
-    cout << "Phai : 1.NAM , 2 NU "; cin >> x ;
+    cout << "Phai(1.NAM , 2 NU):  "; cin >> x ;
     if(x == 1){
         strcpy(a.PHAI, "NAM");
     }
@@ -104,6 +104,7 @@ void in(TheDocGia  a){
 void caythedocgia(TreeDocGia & a,TreeDocGia p){
     if (a ==NULL){
            a = p ;
+           return;
     }
     if(a->dg.MATHE > p->dg.MATHE){
         caythedocgia(a->left,p);
@@ -115,21 +116,84 @@ void caythedocgia(TreeDocGia & a,TreeDocGia p){
 void caythehoten(TreeDocGia &a,TreeDocGia p){
     if (a==NULL){
            a = p ;
+           return;
     }
     if(a->dg.sum > p->dg.sum){
-        caythedocgia(a->left,p);
+        caythehoten(a->left,p);
     }
     if(a->dg.sum <= p->dg.sum) {
-        caythedocgia(a->right,p);
+        caythehoten(a->right,p);
     }
 };
+
 void incay(TreeDocGia a){
     if (a==nullptr){
         return;
     }
     incay(a->left);
-    in(a->dg);
+    cout << a->dg.MATHE <<endl;
+    cout << a->dg.HO <<" "<<a->dg.TEN<<endl;
+    cout <<a->dg.PHAI <<endl;
+    if(a->dg.trangthai == 1){
+        cout <<"thẻ đang hoạt động "<<endl;
+    }
+    else {
+        cout <<"thẻ ko còn hoạt động "<<endl;
+    }
     incay(a->right);
+};
+
+void khoathe(TreeDocGia & a,int x){
+    if(a==NULL){
+        return;
+    }
+    if ( a->dg.MATHE == x){
+        a->dg.trangthai = 0;
+    }
+    khoathe(a->left,x);
+    khoathe(a->right,x);
+};
+
+void xoanode2la(TreeDocGia& a,TreeDocGia &p){
+    if(a->left!=NULL){
+        xoanode2la(a->left,p);
+    }
+    else{
+        p->dg = a->dg;
+        p = a;
+        a = a->left;
+    }
+};
+
+void xoathe(TreeDocGia& a, int x ){
+    if(a==NULL){
+        cout << "Khong tim thay ma the!" << endl;
+        Sleep(1000);
+        return;
+    }
+    if(a->dg.MATHE > x){
+        xoathe(a->left,x);
+    }
+    else if (a->dg.MATHE < x){
+        xoathe(a->right,x);
+    }
+    else{
+        TreeDocGia p = a;
+        if(p->left == NULL){
+            p = p->right;
+            delete p;
+
+        }
+        else if(p->right == NULL){
+            p = p->right;
+            delete p;
+        }
+        else {
+            xoanode2la(a->right,p);
+            delete p;
+        }
+        return;
+    }
 };
 
 //Câu C
@@ -218,6 +282,81 @@ void NhapDauSach(DS_DAUSACH &ds_dausach){
 int main() {
     DS_DAUSACH dsdausach;
     TreeDocGia dsdocgia = NULL;
-    
+    TreeDocGia dshoten = NULL;
+    int lc1 = 0;
+    int lc2 = 0;
+    while(1){
+        system("cls");
+        cout << "====== MENU CHINH ======" << endl;
+        cout <<"1.Nhap the doc gia: " << endl;
+        cout <<"2.In danh sach doc gia: " << endl;
+        cout <<"3.Khoa the doc gia" << endl;
+        cout <<"4.Nhap thong tin dau sach: " << endl;
+        cout <<"0.Thoat" << endl;
+        
+        cout <<"Lua chon cua ban(0..4): ";
+        cin >> lc1;
+
+        if(lc1 == 0){
+            system("cls");
+            cout << "Cam on ba da su dung chuong trinh!" << endl;
+            Sleep(1000);
+            break;
+        }
+        switch (lc1){
+            case 1:{
+                system("cls");
+                cout <<"1.Them doc gia: " << endl;
+                cout <<"2.Xoa doc gia: " << endl;
+                cout <<"3.Hieu chinh doc gia: " << endl;
+                cout <<"Lua chon cua ban(1..3): ";
+                cin >> lc2;
+                switch (lc2){
+                    case 1:{
+                        TreeDocGia tmp = taothedocgia();
+                        TreeDocGia temp = new nodeDocGia();
+                        temp->dg =tmp->dg;
+                        temp->left = temp->right = NULL;
+                        caythedocgia(dsdocgia,tmp);
+                        caythehoten(dshoten,temp);
+                    } 
+                    case 2:{
+                        int mathe = NhapSo("Nhap ma the muon xoa: ");
+                        xoathe(dsdocgia,mathe);
+                        cout << "Da xoa doc gia co ma the " << mathe << " thanh cong!" << endl;
+                        }
+                        Sleep(1000);
+                        break;
+                    }
+                    //case 3:
+            }
+            case 2:{
+                system("cls");
+                cout <<"1.Theo ho+ten: " << endl;
+                cout <<"2.Theo ma doc gia: " << endl;
+                cout <<"Nhap lua chon cua ban(1..2): ";
+                cin >> lc2;
+                switch(lc2){
+                    case 1: incay(dshoten); break;
+                    case 2: incay(dsdocgia); break;
+                }
+            } 
+            case 3:{
+                system("cls");
+                int x;
+                cout << "Nhap ma the muon khoa: ";
+                cin >> x;
+                khoathe(dsdocgia,x);
+                khoathe(dshoten,x);
+            }
+            case 4:{
+                
+            }
+        }
+            
+    }
     return 0;
 }
+
+
+    
