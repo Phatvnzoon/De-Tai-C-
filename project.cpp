@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
+#include "mylib.h"
 
 const int MAX_DAUSACH = 10000;
 
@@ -273,5 +274,5 @@ int main() {
         }
     }
     // dsdocgia = taothedocgia();
-    // in(dsdocgia); ???
+    // in(dsdocgia);aw dawd a wd awdaw
 }
