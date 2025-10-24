@@ -64,7 +64,7 @@ struct nodeDocGia {
     nodeDocGia *left, *right;
 };
 typedef nodeDocGia* TreeDocGia;
-TreeDocGia taothedocgia (){
+TreeDocGia taothedocgia (){ // tạo cây
      TheDocGia a ;
     srand(time(0));
     a.MATHE = 1000 + rand() % (10000 - 1000);
@@ -91,7 +91,7 @@ TreeDocGia taothedocgia (){
      tmp->right = NULL;
      return tmp;
 };
-void caythedocgia(TreeDocGia & a,TreeDocGia p){
+void caythedocgia(TreeDocGia & a,TreeDocGia p){ // thêm cây theo ma the (độc giả)
     if (a ==NULL){
            a = p ;
            return;
@@ -103,7 +103,7 @@ void caythedocgia(TreeDocGia & a,TreeDocGia p){
         caythedocgia(a->right,p);
      }
 };
-void caythehoten(TreeDocGia & a,TreeDocGia p){
+void caythehoten(TreeDocGia & a,TreeDocGia p){ // thêm cây theo tên (độc giả)
     if (a==NULL){
            a = p ;
            return;
@@ -115,7 +115,7 @@ void caythehoten(TreeDocGia & a,TreeDocGia p){
         caythedocgia(a->right,p);
     }
 };
-void incay(TreeDocGia a){
+void incay(TreeDocGia a){ // in cây
     if (a==nullptr){
         return;
     }
@@ -131,7 +131,7 @@ void incay(TreeDocGia a){
     }
     incay(a->right);
 };
-void khoathe(TreeDocGia & a,int x){
+void khoathe(TreeDocGia & a,int x){ // khóa thẻ
     if(a==NULL){
         return;
     }
@@ -151,7 +151,7 @@ void xoanode2la(TreeDocGia& a,TreeDocGia &p){
         a = a->left;
     }
 };
-void xoathe(TreeDocGia& a, int x ){
+void xoathe(TreeDocGia& a, int x ){   // xóa thẻ trong cây
     if(a==NULL){
         return;
     }
@@ -181,7 +181,7 @@ void xoathe(TreeDocGia& a, int x ){
         return;
     }
 };
- void dieuchinhmathe(TreeDocGia& a , TheDocGia &tmp){
+ void dieuchinhmathe(TreeDocGia& a , TheDocGia &tmp){ // điều chỉnh thẻ
     if(a==NULL){
         return ;
     }
@@ -193,6 +193,28 @@ void xoathe(TreeDocGia& a, int x ){
        return ;
     }
 };
+void indsmuontra(MT & a){   // in ds mượn trả
+    MT p = a;
+    while(p == NULL){
+        cout << p->mt.MASACH <<" "<< p->mt.NgayMuon<<" "<<p->mt.NgayTra<<" "<<p->mt.trangthai<<endl;
+        p = p->next;
+    }
+};
+void checkdsmuonsach(TreeDocGia & a, int x ){  // in danh sách mượn trả
+    if(a == NULL){
+        return;
+    }
+    else if(a->dg.MATHE > x){
+        checkdsmuonsach(a->left,x);
+    }
+    else if(a->dg.MATHE < x){
+        checkdsmuonsach(a->right,x);
+    }
+    else{
+        indsmuontra(a->dg.dsmuontra);
+    }   
+};
+
 int main() {
     DS_DAUSACH dsdausach;
     TreeDocGia dsdocgia = NULL;
