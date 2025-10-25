@@ -41,7 +41,7 @@ struct MuonTra {
     char MASACH[16];
     char NgayMuon[11];
     char NgayTra[11];
-    int trangthai;
+    int trangthai2;
 };
 
 struct nodeMuonTra {
@@ -298,6 +298,50 @@ void NhapDauSach(DS_DAUSACH &ds_dausach){
 
     cout << "\nDa them thanh cong!" << endl;
 }
+MT makeMT(){
+    MuonTra mt;
+    
+}
+void muonsach(DS_DAUSACH &a, TreeDocGia &b, string s, char m, int x){
+    if (b == NULL){
+        return;
+    }
+    else if (b->dg.MATHE > x){
+        muonsach(a,b->left,s,m,x);
+    }
+    else if(b->dg.MATHE < x){
+        muonsach(a,b->right,s,m,x);
+    }
+    else{
+        for(int i=0; i<a.n;++i){
+            if(a.nodes[i]->TENSACH == s){
+                SACH temp = a.nodes[i]->FirstSach;
+                while(temp == NULL){
+                    if(temp->data.trangthai == 0){
+                        MT tmp = makeMT();
+                        MT p = b->dg.dsmuontra;
+                        if(p == NULL){
+                            strcpy(tmp->mt.MASACH,temp->data.MASACH);
+                            tmp->mt.trangthai2 = 0;
+                        }
+                        else{
+                            while(p->next != NULL){
+                                b->dg.dsmuontra = b->dg.dsmuontra->next;
+                            }
+                            strcpy(tmp->mt.MASACH,a.nodes[i]->FirstSach->data.MASACH);
+                            tmp->mt.trangthai2 = 0;
+                            p->next = tmp;
+                        }
+                        temp->data.trangthai = 1;
+                        return;
+                    }
+                    temp = temp->next;
+                }
+            }
+        }
+    }
+}
+
 
 int main() {
     DS_DAUSACH dsdausach;
