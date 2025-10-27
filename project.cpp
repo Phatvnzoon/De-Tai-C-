@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
-using namespace std;
 #include "mylib.h"
+using namespace std;
 
 const int MAX_DAUSACH = 10000;
 
@@ -52,6 +52,8 @@ struct nodeMuonTra {
 typedef nodeMuonTra* MT;
 MT makeMT(){
     MT a;
+    cout << "ngay muon: "<< "dd/m/years" << endl;cin >> a->mt.NgayMuon;
+    cout << "ngay tra: "<< "dd/m/years" << endl;cin >> a->mt.NgayTra;
     a->next = NULL;
     return a;
 };
@@ -62,6 +64,7 @@ struct TheDocGia {
     char TEN[31];
     char PHAI[4];
     int trangthai = 1; // 0: bi khoa , 1: hoat dong;
+    int sachmuon = 0 ; // max = 3;
     MT dsmuontra = NULL;
 };
 
@@ -199,14 +202,14 @@ void xoathe(TreeDocGia& a, int x ){   // xóa thẻ trong cây
        return ;
     }
 };
-void indsmuontra(MT & a){   // in ds mượn trả
+void indsmuontra(MT & a){   // in ds mượn trả (1)
     MT p = a;
     while(p == NULL){
         cout << p->mt.MASACH <<" "<< p->mt.NgayMuon<<" "<<p->mt.NgayTra<<" "<<p->mt.trangthai2<<endl;
         p = p->next;
     }
 };
-void checkdsmuonsach(TreeDocGia & a, int x ){  // in danh sách mượn trả
+void checkdsmuonsach(TreeDocGia & a, int x ){  // in danh sách mượn trả (2)
     if(a == NULL){
         return;
     }
@@ -238,18 +241,24 @@ void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
                     if(temp->data.trangthai == 0){ // dò sách đó có ai mượn chưa
                         MT tmp = makeMT();
                         MT p = b->dg.dsmuontra;
+                        if(b->dg.sachmuon >= 3){
+                            cout << "sinh vien nay dang muon 3 cuon sach"<<endl;
+                            return;
+                        }
                         if(p == NULL){
                          strcpy(tmp->mt.MASACH,temp->data.MASACH);
                          tmp->mt.trangthai2 = 0;
+                         b->dg.sachmuon ++;
                          return;
                         }
                         else{
                             while(p->next!=NULL){
-                                b->dg.dsmuontra = b->dg.dsmuontra->next;
+                                p = p->next;
                             }
                             strcpy(tmp->mt.MASACH,a.nodes[i]->FirstSach->data.MASACH); // đã mượn
                          tmp->mt.trangthai2 = 0;
                             p->next = tmp;
+                            b->dg.sachmuon ++;
                         }
                         temp->data.trangthai = 1;
                         return;
@@ -258,6 +267,27 @@ void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
                 }
             }
         }
+    }
+};
+void trasach(TreeDocGia& a, int x,const char* s){
+     if(a == NULL){
+        return; 
+    }
+    else if(a->dg.MATHE > x){
+       trasach(a->left,x,s);
+    }
+    else if(a->dg.MATHE < x){
+        trasach(a->right,x,s);
+    }
+    else{
+         MT p = a->dg.dsmuontra;
+         while(p!=NULL){
+            if(p->mt.MASACH == s){
+                p->mt.trangthai2 =1;
+                return;
+            }
+            p= p->next;
+         }
     }
 };
 //Đánh mã sách tự động
