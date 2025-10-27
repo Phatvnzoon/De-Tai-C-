@@ -323,7 +323,7 @@ void NhapDauSach(DS_DAUSACH &ds_dausach){
         
         cout << "Da tao sach voi ma: " << maSach << endl;
     }
-
+}
 //Đánh mã sách tự động
 string randomMaSach(){ // tạo mã sách có 6 chữ số
     string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -406,55 +406,6 @@ void NhapDauSach(DS_DAUSACH &ds_dausach){
 
     cout << "\nDa them thanh cong!" << endl;
 }
-MT makeMT(){
-    MT newNode = new nodeMuonTra();
-    strcpy(newNode->mt.MASACH, "");
-    strcpy(newNode->mt.NgayMuon, "");
-    strcpy(newNode->mt.NgayTra, "");
-    newNode->mt.trangthai2 = 0; // 0: đang mượn, 1: đã trả
-    newNode->next = NULL;
-    return newNode;
-}
-void muonsach(DS_DAUSACH &a, TreeDocGia &b, string s, char m, int x){
-    if (b == NULL){
-        return;
-    }
-    else if (b->dg.MATHE > x){
-        muonsach(a,b->left,s,m,x);
-    }
-    else if(b->dg.MATHE < x){
-        muonsach(a,b->right,s,m,x);
-    }
-    else{
-        for(int i=0; i<a.n;++i){
-            if(a.nodes[i]->TENSACH == s){
-                SACH temp = a.nodes[i]->FirstSach;
-                while(temp == NULL){
-                    if(temp->data.trangthai == 0){
-                        MT tmp = makeMT();
-                        MT p = b->dg.dsmuontra;
-                        if(p == NULL){
-                            strcpy(tmp->mt.MASACH,temp->data.MASACH);
-                            tmp->mt.trangthai2 = 0;
-                        }
-                        else{
-                            while(p->next != NULL){
-                                b->dg.dsmuontra = b->dg.dsmuontra->next;
-                            }
-                            strcpy(tmp->mt.MASACH,a.nodes[i]->FirstSach->data.MASACH);
-                            tmp->mt.trangthai2 = 0;
-                            p->next = tmp;
-                        }
-                        temp->data.trangthai = 1;
-                        return;
-                    }
-                    temp = temp->next;
-                }
-            }
-        }
-    }
-}
-
 
 int main() {
     DS_DAUSACH dsdausach;
