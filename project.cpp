@@ -235,7 +235,7 @@ void changebook(DS_DAUSACH & a,const char* s,const char* t,int x){
         }
     }
 };
-void muonsach(DS_DauSach & a, TreeDocGia & b,const char* s,int x){
+void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
     if(b == NULL){
         return; 
     }
@@ -246,6 +246,15 @@ void muonsach(DS_DauSach & a, TreeDocGia & b,const char* s,int x){
         muonsach(a,b->right,s,x);
     }
     else {
+        if(b->dg.sachmuon >= 3){
+          cout << "sinh vien nay dang muon 3 cuon sach"<<endl;
+          return;
+        }
+        if(b->dg.trangthai == 0){
+             cout << "the bi khoa "<<endl;
+             return;
+        }
+        // thiếu nếu đang giữ sách quá 7 ngày thì ko cho mượn
         for(int i = 0 ; i < a.n;++i){
             if(strcmp(a.nodes[i]->TENSACH,s)==0){ // dò tên sách trùng
                 SACH temp = a.nodes[i]->FirstSach;
@@ -264,7 +273,7 @@ void muonsach(DS_DauSach & a, TreeDocGia & b,const char* s,int x){
                             while(p->next!=NULL){
                                 p = p->next;
                             }
-                            strcpy(tmp->mt.MASACH,a->nodes[i]->FirstSach->data.MASACH); // đã mượn
+                            strcpy(tmp->mt.MASACH,a.nodes[i]->FirstSach->data.MASACH); // đã mượn
                          tmp->mt.trangthai2 = 0;
                             p->next = tmp;
                             b->dg.sachmuon ++;
@@ -278,68 +287,21 @@ void muonsach(DS_DauSach & a, TreeDocGia & b,const char* s,int x){
         }
     }
 };
-//Đánh mã sách tự động
-string randomMaSach(){ // tạo mã sách có 6 chữ số
-    string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    string result;
-    while(1){
-        result = "";
-        bool fullLetter = false, fullDigit = false;
-        for (int i = 0; i < 6; i++) {
-            char c = chars[rand() % chars.size()];
-            result += c; 
-            if (isalpha(c)) fullLetter = true;
-            if (isdigit(c)) fullDigit = true;
-        }
-        if (fullLetter && fullDigit) break; //Bỏ trường hợp full chữ hoặc full số
-    }   
-    
-    return result;
+void trasach(TreeDocGia& a,DS_DAUSACH & b, int x,const char* s,const char* t){
+     if(a == NULL){
+        return; 
+    }
+    else if(a->dg.MATHE > x){
+       trasach(a->left,b,x,s,t);
+    }
+    else if(a->dg.MATHE < x){
+        trasach(a->right,b,x,s,t);
+    }
+    else{
+         changebook(b,s,t,0);
+    }
 };
-bool MaSachTrung(DauSach *ds, string &Ma){
-    SACH p = ds->FirstSach;
-    while (p != NULL) {
-        if (strcmp(p->data.MASACH, Ma.c_str()) == 0)
-            return true;
-        p = p->next;
-    }
-    return false;
-};
-void NhapDauSach(DS_DAUSACH &ds_dausach){
-    if (ds_dausach.n >= MAX_DAUSACH){
-        cout << "Danh sach da day, khong the nhap!";
-        return;
-    }
 
-    DauSach *p = new DauSach();
-    NhapMa("Nhap ISBN(13 so): ", p->ISBN, 15);
-    NhapChuoi("Nhap ten sach: ", p->TENSACH,101);
-    p->SOTRANG = NhapSo("Nhap so trang: ");
-    NhapChuoi("Nhap tac gia: ", p->TACGIA, 51);
-    p->NAMXUATBAN = NhapSo("Nhap Nam xuat ban: ");
-    NhapChuoi("Nhap the loai: ", p->THELOAI, 31);
-    int slsach = NhapSo("Nhap so luong sach: ");
-
-    for(int i = 0; i < slsach; i++){
-        SACH newSach = new nodeSach();
-        
-        // Tạo mã sách tự động và kiểm tra trùng
-        string maSach;
-        do {
-            maSach = randomMaSach();
-        } while(MaSachTrung(p, maSach));
-        
-        strcpy(newSach->data.MASACH, maSach.c_str());
-        newSach->data.trangthai = 0; // 0: trong kho
-        NhapChuoi("Nhap vi tri: ", newSach->data.vitri, 51);
-        
-        // Thêm vào đầu danh sách liên kết
-        newSach->next = p->FirstSach;
-        p->FirstSach = newSach;
-        
-        cout << "Da tao sach voi ma: " << maSach << endl;
-    }
-}
 //Đánh mã sách tự động
 string randomMaSach(){ // tạo mã sách có 6 chữ số
     string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
