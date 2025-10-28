@@ -267,6 +267,7 @@ void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
                          tmp->mt.trangthai2 = 0;
                          b->dg.sachmuon ++;
                          temp->data.trangthai =1;
+                         a.nodes[i]->slm ++;
                          return;
                         }
                         else{
@@ -278,6 +279,7 @@ void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
                             p->next = tmp;
                             b->dg.sachmuon ++;
                             temp->data.trangthai =1;
+                             a.nodes[i]->slm ++;
                             return;
                         }
                     }
@@ -299,6 +301,46 @@ void trasach(TreeDocGia& a,DS_DAUSACH & b, int x,const char* s,const char* t){
     }
     else{
          changebook(b,s,t,0);
+         MT temp = a->dg.dsmuontra;
+         while(temp != NULL){
+            if (temp->mt.MASACH == s){
+                temp->mt.trangthai2 = 1 ;
+            }
+         }
+    }
+};
+void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
+    int cnt = 0;
+    DauSach tmp[10];
+    for (int i = 0; i < a->n ; ++i)
+    {    if(cnt < 10){
+         tmp[cnt++].slm = a->nodes[i]->slm;
+         strcpy(tmp[cnt].TENSACH,a->nodes[i]->TENSACH);
+    }
+        else {
+            for(int j = 0 ; j <cnt;++i){
+                 if(tmp[j].slm <a->nodes[i]->slm){
+                    tmp[j].slm = a->nodes[i]->slm;
+                    strcpy(tmp[j].TENSACH ,a->nodes[i]->TENSACH);
+                 }
+            }
+            for(int i = 0 ; i < cnt ; ++i){
+                for(int j = i +1 ; j < cnt ; ++j){
+                    if(tmp[i].slm < tmp[j].slm){
+                        DauSach temp;
+                        temp.slm = tmp[i].slm;
+                        strcpy(temp.TENSACH,tmp[i].TENSACH);
+                        tmp[i].slm = tmp[j].slm;
+                        strcpy(tmp[i].TENSACH,tmp[j].TENSACH);
+                        tmp[j].slm = temp.slm;
+                        strcpy(tmp[j].TENSACH,temp.TENSACH);
+                    }
+                }
+            }
+        }
+    }
+    for(int i = 0 ; i < cnt; ++i){
+        cout << tmp[i].TENSACH<<" "<<tmp[i].slm<<endl;
     }
 };
 
