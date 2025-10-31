@@ -111,7 +111,7 @@ void clrscr() {
 }
 
 // Nhập số
-long long NhapSo(char* prompt) {
+long long NhapSo(const char* prompt) {
     char ch;
     char str[20];
     int i = 0;
@@ -162,7 +162,7 @@ long long NhapSo(char* prompt) {
 }
 
 // Nhập chuỗi
-void NhapChuoi(char* prompt, char* result, int max_length) {
+void NhapChuoi(const char* prompt, char* result, int max_length) {
     char ch;
     int i = 0;
     
@@ -208,7 +208,7 @@ void NhapChuoi(char* prompt, char* result, int max_length) {
 }
 
 // Nhập mã
-void NhapMa(char* prompt, char* result, int max_length) {
+void NhapMa(const char* prompt, char* result, int max_length) {
     char ch;
     int i = 0;
     
