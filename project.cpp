@@ -37,12 +37,20 @@ struct Date{
     int month;
     int year;
 };
-
+Date time(){
+    Date a;
+    time_t now = time(0);
+    tm* time = localtime(&now);
+    a.day = time->tm_mday;
+    a.month =time->tm_mon +1;
+    a.year = time->tm_year +1900;
+    return a;
+};
 struct MuonTra {
     char TENSACH[101];
     char MASACH[16];
-    char NgayMuon[11];
-    char NgayTra[11];
+    string NgayMuon;
+    string NgayTra;
     int trangthai2; // =0 đang mượn , =1 đã trả , =2 là mất sách
 };
 struct nodeMuonTra {
@@ -201,7 +209,9 @@ void xoathe(TreeDocGia& a, int x ){   // xóa thẻ trong cây
 void indsmuontra(MT & a){   // in ds mượn trả
     MT p = a;
     while(p == NULL){
+        if(p->mt.trangthai2==0){
         cout << p->mt.MASACH <<" "<<p->mt.TENSACH<<" "<< p->mt.NgayMuon<<" "<<p->mt.NgayTra<<" "<<p->mt.trangthai2<<endl;
+        }
         p = p->next;
     }
 };
@@ -233,6 +243,43 @@ void changebook(DS_DAUSACH & a,const char* s,const char* t,int x){
         }
     }
 };
+void checkdaymt(TreeDocGia & b,Date & a){
+    MT p = b->dg.dsmuontra;
+    int ketqua;
+    string s;
+    int ketquat = a.day + a.month*30 +a.year *365;
+    while (p == nullptr){
+        int cnt = 3;
+       for(int i = 0; i < p->mt.NgayMuon.size();i++){
+        int sum;
+           if(p->mt.NgayMuon[i]=='/'&& cnt == 3){
+              sum += stoi(s);
+              cnt --;
+              ketqua += sum;
+              s.clear();
+           }
+           else if(p->mt.NgayMuon[i]=='/'&& cnt == 2){
+              sum += stoi(s);
+              cnt --;
+              ketqua += sum * 30;
+              s.clear();
+           }
+           else if(cnt == 1){
+              sum += stoi(s);
+              cnt --;
+              ketqua += sum * 365;
+              s.clear();
+           }
+           else{
+              s = stoi(string(1,p->mt.NgayMuon[i]));
+           }
+       }
+       if(ketquat - ketqua >= 7){
+          b->dg.trangthai = 0;
+       }
+       p = p->next;
+    }
+};
 void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
     if(b == NULL){
         return; 
@@ -244,6 +291,8 @@ void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
         muonsach(a,b->right,s,x);
     }
     else {
+        Date t = time();
+        checkdaymt(b,t);
         if(b->dg.sachmuon >= 3){
           cout << "sinh vien nay dang muon 3 cuon sach"<<endl;
           return;
@@ -266,6 +315,7 @@ void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
                          b->dg.sachmuon ++;
                          temp->data.trangthai =1;
                          a.nodes[i]->slm ++;
+                         tmp->mt.NgayMuon = to_string(t.day) + "/"+ to_string(t.month) + "/" +to_string(t.year);
                          return;
                         }
                         else{
@@ -278,6 +328,7 @@ void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
                             b->dg.sachmuon ++;
                             temp->data.trangthai =1;
                              a.nodes[i]->slm ++;
+                             tmp->mt.NgayMuon = to_string(t.day) + "/"+ to_string(t.month) + "/" +to_string(t.year);
                             return;
                         }
                     }
@@ -298,11 +349,13 @@ void trasach(TreeDocGia& a,DS_DAUSACH & b, int x,const char* s,const char* t){
         trasach(a->right,b,x,s,t);
     }
     else{
+        Date TIME = time();
          changebook(b,s,t,0);
          MT temp = a->dg.dsmuontra;
          while(temp != NULL){
             if (temp->mt.MASACH == s){
                 temp->mt.trangthai2 = 1 ;
+                temp->mt.NgayTra = to_string(TIME.day)+"/"+to_string(TIME.month)+"/"+to_string(TIME.year);
             }
          }
     }
@@ -451,7 +504,6 @@ void Tim_Sach_Ten(DS_DauSach &ds_dausach){
         }
     }
 }
-
 int main() {
     DS_DauSach dsdausach = new DS_DAUSACH();
     TreeDocGia dsdocgia = NULL;
