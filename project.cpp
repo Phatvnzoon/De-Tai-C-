@@ -833,8 +833,9 @@ int main() {
                 cout << "===== QUAN LY DAU SACH =====" << endl;
                 cout << "1. Nhap dau sach" << endl;
                 cout << "2. Xoa dau sach" << endl;
-                cout << "3. In danh sach theo the loai" << endl;
-                cout << "4. Tim sach theo ten" << endl;
+                cout << "3. Dieu chinh dau sach" << endl;
+                cout << "4. In danh sach theo the loai" << endl;
+                cout << "5. Tim sach theo ten" << endl;
                 cout << "0. Quay lai" << endl;
                 cout << "============================" << endl;
                 cout << "Lua chon: ";
@@ -852,10 +853,15 @@ int main() {
                 }
                 else if (lc2 == 3){
                     system("cls");
-                    In_DS_TheLoai(dsdausach);
+                    DieuChinhDauSach(dsdausach);
                     system("pause");
                 }
                 else if (lc2 == 4){
+                    system("cls");
+                    In_DS_TheLoai(dsdausach);
+                    system("pause");
+                }
+                else if (lc2 == 5){
                     system("cls");
                     Tim_Sach_Ten(dsdausach);
                     system("pause");
