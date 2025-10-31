@@ -5,7 +5,9 @@
 #include <string.h>
 #include <windows.h>
 #include <math.h>
-
+#include <limits>
+#include <bits/stdc++.h>
+using namespace std;
 #define Enter 13
 //const int WHITE=15;
 #define PASSWORD "abcdef"
@@ -110,153 +112,94 @@ void clrscr() {
 	system("cls");
 }
 
-// Nhập số
-long long NhapSo(const char* prompt) {
-    char ch;
-    char str[20];
-    int i = 0;
-    
-    printf("%s", prompt);
-    
-    while (1) {
-        ch = getch(); // nhập ký tự từ bàn phím trả về mã ASCII
-        
-        if (ch == Enter) {
-            if (i == 0) {
-                // Chưa nhập số nào
-                printf("\nVui long nhap so!");
-                printf("\n%s", prompt);
-                continue;
-            }
-            str[i] = '\0';
-            printf("\n");
-            return atoll(str); // chuyển ký tự thành ký số long long
-        }
-        else if (ch == Backspace) {
-            if (i > 0) {
-                i--;
-                printf("\b \b");
-            }
-        }
-        else if (isdigit(ch)) {
-            if (i < 19) {
-                str[i] = ch;
-                printf("%c", ch);
-                i++;
-            }
-        }
-        else if (atoll(str) < 0){{
+//Check nhap so
+long long NhapSo(const string& prompt) {
+    string input;
+    while (true) {
+        cout << prompt;
+        cin.ignore();
+        getline(cin, input);
+        if (input.empty()) {
+            cout << "Loi: Vui long nhap so!" << endl;
             continue;
-        }}
-        else{
-            // hiển thị ký tự sai và thông báo
-            printf("%c <- Vui long chi nhap so!", ch);
-            Sleep(1000);
-            int lenNoti = 25; // độ dài " <- Vui long chi nhap so!"
-            for (int j = 0; j < lenNoti; j++) {
-                printf("\b \b"); // xoá noti
+        }
+        bool valid = true;
+        for (char ch : input) {
+            if (!isdigit(ch)) {
+                valid = false;
+                break;
             }
-            printf("\b \b"); // xoá ký sai
+        }
+        if (!valid) {
+            cout << "Loi: Vui long chi nhap so!" << endl;
+            continue;
+        }
+        try {
+            long long result = stoll(input);
+            if (result < 0) {
+                cout << "Loi: So phai lon hon hoac bang 0!" << endl;
+                continue;
+            }
+            return result;
+        }
+        catch (...) {
+            cout << "Loi: So qua lon!" << endl;
         }
     }
 }
 
-// Nhập chuỗi
-void NhapChuoi(const char* prompt, char* result, int max_length) {
-    char ch;
-    int i = 0;
-    
-    printf("%s", prompt);
-    
-    while (1) {
-        ch = getch();
-        
-        if (ch == Enter) {
-            if (i == 0) {
-                printf("\nVui long nhap chuoi!");
-                printf("\n%s", prompt);
-                continue;
-            }
-            result[i] = '\0';
-            printf("\n");
-            return;
+void NhapChuoi(const string& prompt, char* result, int max_length) {
+    string input;
+    while (true) {
+        cout << prompt;
+        cin.ignore();
+        getline(cin, input);
+        if (input.empty()) {
+            cout << "Loi: Vui long nhap chuoi!" << endl;
+            continue;
         }
-        else if (ch == Backspace) {
-            if (i > 0) {
-                i--;
-                printf("\b \b");
+        bool valid = true;
+        for (char ch : input) {
+            if (!isalpha(ch) && ch != ' ') {
+                valid = false;
+                break;
             }
         }
-        else if (isalpha(ch) || ch == ' ') {
-            if (i < max_length - 1) {
-                result[i] = ch;
-                printf("%c", ch);
-                i++;
-            }
+        if (!valid) {
+            cout << "Loi: Vui long chi nhap chu cai va khoang trang!" << endl;
+            continue;
         }
-        else{
-            // hiển thị ký tự sai và thông báo
-            printf("%c <- Vui long chi nhap chu cai va khoang trang!", ch);
-            Sleep(1000);
-            int lenNoti = 46; // độ dài " <- Vui long chi nhap chu cai va khoang trang!"
-            for (int j = 0; j < lenNoti; j++) {
-                printf("\b \b"); // xoá noti
-            }
-            printf("\b \b"); // xoá ký sai
-        }
+        strncpy(result, input.c_str(), max_length - 1);
+        result[max_length - 1] = '\0';
+        return;
     }
 }
 
-// Nhập mã
-void NhapMa(const char* prompt, char* result, int max_length) {
-    char ch;
-    int i = 0;
-    
-    printf("%s", prompt);
-    
-    while (1) {
-        ch = getch();
-        
-        if (ch == Enter) {
-            if (i == 0) {
-                printf("\nVui long nhap ma!");
-                printf("\n%s", prompt);
-                continue;
-            }
-            result[i] = '\0';
-            printf("\n");
-            return;
+void NhapMa(const string& prompt, char* result, int max_length) {
+    string input;
+    while (true) {
+        cout << prompt;
+        getline(cin, input);
+        if (input.empty()) {
+            cout << "Loi: Vui long nhap ma!" << endl;
+            continue;
         }
-        else if (ch == Backspace) {
-            if (i > 0) {
-                i--;
-                printf("\b \b");
+        bool valid = true;
+        for (char ch : input) {
+            if (!isalnum(ch) && ch != '-' && ch != '_') {
+                valid = false;
+                break;
             }
         }
-        else if (isalpha(ch)) {
-            if (i < max_length - 1) {
-                // Tự động chuyển thành chữ hoa
-                result[i] = toupper(ch);
-                printf("%c", result[i]);
-                i++;
-            }
+        if (!valid) {
+            cout << "Loi: Vui long chi nhap chu cai, so, '-' hoac '_'!" << endl;
+            continue;
         }
-        else if (isdigit(ch) || ch == '-' || ch == '_') {
-            if (i < max_length - 1) {
-                result[i] = ch;
-                printf("%c", ch);
-                i++;
-            }
+        for (char& ch : input) {
+            ch = toupper(ch);
         }
-        else{
-            // hiển thị ký tự sai và thông báo
-            printf("%c <- Vui long nhap theo yeu cau!", ch);
-            Sleep(1000);
-            int lenNoti = 31; // độ dài " <- Vui long nhap theo yeu cau!"
-            for (int j = 0; j < lenNoti; j++) {
-                printf("\b \b"); // xoá noti
-            }
-            printf("\b \b"); // xoá ký sai
-        }
+        strncpy(result, input.c_str(), max_length - 1);
+        result[max_length - 1] = '\0';
+        return;
     }
 }
