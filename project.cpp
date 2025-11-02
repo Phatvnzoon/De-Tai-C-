@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include "mylib.h"
+#include <fstream>
 using namespace std;
 const int MAX_DAUSACH = 10000;
 
@@ -66,8 +67,8 @@ MT makeMT(){
 struct TheDocGia {
     int MATHE=0;
     int sum=0;
-    char HO[51];
-    char TEN[31];
+    string HO;
+    string TEN;
     char PHAI[4];
     int trangthai = 1; // 0: bi khoa , 1: hoat dong;
     int sachmuon = 0 ;// max = 3;
@@ -87,8 +88,8 @@ TreeDocGia taothedocgia (){ // tạo cây
     TheDocGia a ;
     srand(time(0));
     a.MATHE = 1000 + rand() % (10000 - 1000);
-    NhapChuoi("Ho: ", a.HO,51);
-    NhapChuoi("Ten: ", a.TEN,31);
+    cout << "HO: "<<endl; cin >> a.HO;
+    cout << "Ten: "<<endl; cin >> a.TEN;
     int x;
     cout << "Phai(1.NAM , 2 NU): "; cin >> x ;
     if(x == 1){
@@ -97,10 +98,10 @@ TreeDocGia taothedocgia (){ // tạo cây
     if(x==2){
         strcpy(a.PHAI, "Nu");
     }
-    for(int i = 0 ; i < a.HO[i]!='\0';i++){
+    for(int i = 0 ; i < a.HO.size();i++){
         a.sum += a.HO[i];
     }
-    for(int i = 0 ; i < a.TEN[i]!='\0';i++){
+    for(int i = 0 ; i < a.TEN.size();i++){
         a.sum += a.TEN[i];
     }
      TreeDocGia tmp = new nodeDocGia();
@@ -454,6 +455,30 @@ string randomMaSach(char *ISBN){ // tạo mã sách có ISBN và 6 chữ số
     }   
     
     return string(ISBN) + "-" + result;
+}
+void loadfile(TreeDocGia & a , ifstream & f ){
+    string doc;
+    while(getline(f,doc)){
+        TheDocGia tmp;
+        stringstream ss(doc);
+        string s;
+        getline(ss, s, '|'); tmp.MATHE = stoi(s);
+        getline(ss, s, '|');
+        int pos = s.find(' ');
+        if (pos != string::npos) {
+        tmp.HO = s.substr(0,pos);
+        tmp.TEN = s.substr(pos +1);}
+        getline(ss, s, '|'); strcpy(tmp.PHAI, s.c_str());
+        getline(ss, s, '|'); tmp.trangthai = stoi(s);
+        getline(ss, s, '|'); tmp.sum = stoi(s);
+        getline(ss, s, '|'); tmp.sachmuon = stoi(s);
+        getline(ss, s, '|'); tmp.quahan = stoi(s);
+       TreeDocGia temp = new nodeDocGia();
+       temp->dg = tmp;
+       temp->left = temp->right = NULL;
+       caythedocgia(a,temp);
+
+    }
 }
 //Check mã sách trùng
 bool MaSachTrung(DauSach *ds, string &Ma){
@@ -894,9 +919,24 @@ int main() {
                         system("pause");
                         break;
                     }
-                    case 6:{
+                    case 6:{           
+                        ofstream f("thedocgiadata.txt");
+                        if(!f){
+                            cout << "No"<<endl;
+                            break;
+                        }
                         savefiletree(dsdocgia,f);
+                        f.close();
                         break;}
+                    case 7:{
+                        ifstream Fout("thedocgiadata.txt");
+                        if(!Fout){
+                            cout << "No"<<endl;
+                            break;
+                        }
+                        loadfile(dsdocgia,Fout);
+                        Fout.close();
+                        break;}   
                 }
                 break;
             }
