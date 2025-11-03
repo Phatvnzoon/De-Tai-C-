@@ -203,3 +203,33 @@ void NhapMa(const string& prompt, char* result, int max_length) {
         return;
     }
 }
+void chuanhoa(string & s ){
+    s[0] = toupper(s[0]);
+   for(int i = 1 ; i < s.size();i++){
+      s[i] = tolower(s[i]);
+   }
+}
+void stringdg(const string& s,string &end){
+    if(s.empty()){
+        cout <<"vui long nhap ten"<<endl;
+        return;
+    }
+    for(char x : s){
+        if(isspace(x)){
+            continue;
+        }
+        if(!isalpha(x)){
+            cout<<" word only"<<endl;
+            return;
+        }
+        }
+    string tmp;
+    stringstream ss(s);
+    while(ss >> tmp){
+        chuanhoa(tmp);
+        if(!end.empty()){
+            end +=' ';
+        }
+        end+=tmp;
+}
+};
