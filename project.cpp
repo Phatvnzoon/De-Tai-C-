@@ -86,10 +86,27 @@ struct nodeDocGia {
 typedef nodeDocGia* TreeDocGia;
 TreeDocGia taothedocgia (){ // tạo cây
     TheDocGia a ;
+    string s;
+    string stwo;
+    stringstream ss(s);
     srand(time(0));
     a.MATHE = 1000 + rand() % (10000 - 1000);
-    cout << "HO: "<<endl; cin >> a.HO;
-    cout << "Ten: "<<endl; cin >> a.TEN;
+    cout << "HO: "; cin.ignore();
+    getline(cin,s);
+    stringdg(s,a.HO);
+    while(a.HO.empty()){
+    cout << "HO: ";
+    getline(cin,s);
+    stringdg(s,a.HO);
+    }
+    cout << "Ten: "; 
+    getline(cin,stwo);
+    stringdg(stwo,a.TEN);
+    while(a.TEN.empty()){
+    cout << "TEN: ";
+    getline(cin,stwo);
+    stringdg(stwo,a.TEN);
+    }
     int x;
     cout << "Phai(1.NAM , 2 NU): "; cin >> x ;
     if(x == 1){
@@ -156,6 +173,7 @@ void khoathe(TreeDocGia & a,int x){ // khóa thẻ
     }
     if ( a->dg.MATHE == x){
         a->dg.trangthai = 0;
+        cout << "da khoa the"<<endl;
     }
     khoathe(a->left,x);
     khoathe(a->right,x);
@@ -175,42 +193,46 @@ void xoathe(TreeDocGia& a, int x ){   // xóa thẻ trong cây
         return;
     }
         xoathe(a->left,x); 
-        xoathe(a->right,x);
-       if(a->dg.MATHE== x){ 
+        if(a->dg.MATHE== x){ 
         if(a->left == NULL){
             TreeDocGia p = a;
             a = a->right;
             delete p;
+            cout <<"da xoa the"<<endl;
 
         }
         else if(a->right == NULL){
             TreeDocGia p = a;
             a = a->left;
             delete p;
+            cout <<"da xoa the"<<endl;
         }
         else if(a->right == NULL&& a->left == NULL){
             delete a;
             a = nullptr;
+            cout <<"da xoa the"<<endl;
            }
         else {
             TreeDocGia p = a;
             xoanode2la(a->right,p);
             delete p;
+            cout <<"da xoa the"<<endl;
         }
         return;
     }
+        xoathe(a->right,x);
 };
  void dieuchinhmathe(TreeDocGia& a , TheDocGia &tmp){ // điều chỉnh thẻ
     if(a==NULL){
         return ;
     }
     dieuchinhmathe(a->left,tmp);
-    dieuchinhmathe(a->right,tmp);
     if(a->dg.MATHE == tmp.MATHE){
        a->dg = tmp;
        cout << "Dieu chinh thanh cong "<<endl;
        return ;
     }
+    dieuchinhmathe(a->right,tmp);
 };
 void indsmuontra(MT & a){   // in ds mượn trả đang mượn
     MT p = a;
@@ -456,7 +478,7 @@ string randomMaSach(char *ISBN){ // tạo mã sách có ISBN và 6 chữ số
     
     return string(ISBN) + "-" + result;
 }
-void loadfile(TreeDocGia & a , ifstream & f ){
+void loadfile(TreeDocGia & a ,TreeDocGia & b, ifstream & f ){
     string doc;
     while(getline(f,doc)){
         TheDocGia tmp;
@@ -476,10 +498,13 @@ void loadfile(TreeDocGia & a , ifstream & f ){
        TreeDocGia temp = new nodeDocGia();
        temp->dg = tmp;
        temp->left = temp->right = NULL;
+       TreeDocGia tempdocten = new nodeDocGia();
+       tempdocten->dg = tmp;
+       tempdocten->left = tempdocten->right = NULL;
        caythedocgia(a,temp);
-
+       caythehoten(b,tempdocten);
     }
-}
+};
 //Check mã sách trùng
 bool MaSachTrung(DauSach *ds, string &Ma){
     SACH p = ds->FirstSach;
@@ -562,7 +587,7 @@ void XoaDauSach(DS_DauSach & ds_dausach){
     // Nếu không tìm thấy
     if (vi_tri_xoa == -1) {
         cout << "Khong tim thay dau sach voi ISBN: " << isbn_can_xoa << endl;
-        system("pause");
+        
         return;
     }
 
@@ -581,7 +606,7 @@ void XoaDauSach(DS_DauSach & ds_dausach){
     // Nếu đang có sách được mượn, không cho xóa
     if (dang_duoc_muon) {
         cout << "Khong the xoa dau sach nay. Co sach dang duoc doc gia muon." << endl;
-        system("pause");
+        
         return;
     }
 
@@ -593,7 +618,7 @@ void XoaDauSach(DS_DauSach & ds_dausach){
     
     if (xac_nhan == "N" || xac_nhan == "n") {
         cout << "Da huy thao tac xoa." << endl;
-        system("pause");
+        
         return;
     }
     
@@ -616,7 +641,7 @@ void XoaDauSach(DS_DauSach & ds_dausach){
     ds_dausach->nodes[ds_dausach->n] = NULL; 
 
     cout << "Da xoa dau sach thanh cong!" << endl;
-    system("pause");
+    
 }
 
 //Điều chỉnh đầu sách
@@ -638,7 +663,7 @@ void DieuChinhDauSach(DS_DauSach &ds_dausach) {
     // Nếu không tìm thấy
     if (vi_tri_sua == -1) {
         cout << "Khong tim thay dau sach voi ISBN: " << isbn_can_sua << endl;
-        system("pause");
+        
         return;
     }
 
@@ -659,7 +684,7 @@ void DieuChinhDauSach(DS_DauSach &ds_dausach) {
     if (dang_duoc_muon) {
         cout << "Khong the hieu chinh dau sach nay. Co sach dang duoc doc gia muon." << endl;
         cout << "Vui long tra het sach truoc khi hieu chinh." << endl;
-        system("pause");
+        
         return;
     }
 
@@ -672,7 +697,6 @@ void DieuChinhDauSach(DS_DauSach &ds_dausach) {
 
     int lua_chon;
     do {
-        system("cls");
         cout << "HIEU CHINH DAU SACH (ISBN: " << p_can_sua->ISBN << ")" << endl;
         cout << "-----------------------------------" << endl;
         cout << "1. Ten sach: " << data_moi.TENSACH << endl;
@@ -767,7 +791,7 @@ void DieuChinhDauSach(DS_DauSach &ds_dausach) {
     }
 
     cout << "Da cap nhat dau sach thanh cong!" << endl;
-    system("pause");
+    
 }
 void In_DS_TheLoai(DS_DauSach &ds_dausach){
     char theloai[31];
@@ -812,9 +836,13 @@ int main() {
     DS_DauSach dsdausach = new DS_DAUSACH();
     TreeDocGia dsdocgia = NULL;
     TreeDocGia dshoten = NULL;
-   ofstream f;f.open("thedocgiadata.txt");
+    ifstream Fout("thedocgiadata.txt");
+        if(!Fout){
+         cout << "No"<<endl;
+            }
+        loadfile(dsdocgia,dshoten,Fout);
+        Fout.close();
     do{
-        system("cls");
         cout << "========== QUAN LY THU VIEN ==========" << endl;
         cout << "1. Quan ly doc gia" << endl;
         cout << "2. Quan ly dau sach" << endl;
@@ -833,7 +861,7 @@ int main() {
                 return 0;
                 
             case 1:{ // QUAN LY DOC GIA
-                system("cls");
+                
                 cout << "===== QUAN LY DOC GIA =====" << endl;
                 cout << "1. Them the doc gia" << endl;
                 cout << "2. Xoa the doc gia" << endl;
@@ -850,73 +878,91 @@ int main() {
                 
                 switch (lc2){
                     case 1:{
-                        system("cls");
+                        
                         TreeDocGia tmp = taothedocgia();
                         TreeDocGia temp = new nodeDocGia();
                         temp->dg = tmp->dg;
                         temp->left = temp->right = NULL;
                         caythedocgia(dsdocgia, tmp);
                         caythehoten(dshoten, temp);
-                        system("pause");
+                        
                         break;
                     }
                     case 2:{
-                        system("cls");
+                        
                         cout << "Nhap ma the muon xoa: ";
                         int x; 
                         cin >> x;
                         xoathe(dsdocgia, x);
                         xoathe(dshoten, x);
-                        cout << "\nXoa thanh cong!" << endl;
-                        system("pause");
                         break;
                     }
                     case 3:{
-                        system("cls");
-                        TheDocGia tmp;
-                        cout << "Nhap ma the muon dieu chinh: ";
-                        cin >> tmp.MATHE;
-                        cin.ignore();
-                        NhapChuoi("Ho moi: ", tmp.HO, 51);
-                        NhapChuoi("Ten moi: ", tmp.TEN, 31);
-                        int g;
-                        cout << "Phai (1.NAM, 2.NU): ";
-                        cin >> g;
-                        if(g == 1){
-                            strcpy(tmp.PHAI, "Nam");
-                        } else if(g == 2){
-                            strcpy(tmp.PHAI, "Nu");
-                        }
-                        dieuchinhmathe(dsdocgia, tmp);
-                        dieuchinhmathe(dshoten, tmp);
-                        system("pause");
+                        cout <<"Ma The Can Thay Doi:"; int l ; cin >> l;
+                        TheDocGia a ;
+                        string s;
+                        string stwo;
+                        stringstream ss(s);
+                         a.MATHE = l;
+                        cout << "HO: "; cin.ignore();
+                        getline(cin,s);
+                        stringdg(s,a.HO);
+                        while(a.HO.empty()){
+                        cout << "HO: ";
+                        getline(cin,s);
+                        stringdg(s,a.HO);
+                                       }
+                        cout << "Ten: "; 
+                        getline(cin,stwo);
+                        stringdg(stwo,a.TEN);
+                        while(a.TEN.empty()){
+                        cout << "TEN: ";
+                        getline(cin,stwo);
+                        stringdg(stwo,a.TEN);
+                                       }
+                        int x;
+                        cout << "Phai(1.NAM , 2 NU): "; cin >> x ;
+                        if(x == 1){
+                          strcpy(a.PHAI, "Nam");
+                                                  }
+                        if(x==2){
+                          strcpy(a.PHAI, "Nu");
+                                                    }
+                        for(int i = 0 ; i < a.HO.size();i++){
+                             a.sum += a.HO[i];
+                                               }
+                        for(int i = 0 ; i < a.TEN.size();i++){
+                                     a.sum += a.TEN[i];
+                                       }
+                        
+                        dieuchinhmathe(dsdocgia, a);
+                        dieuchinhmathe(dshoten, a);
+                        
                         break;
                     }
                     case 4:{
-                        system("cls");
+                        
                         cout << "Nhap ma the muon khoa: ";
                         int x; 
                         cin >> x;
                         khoathe(dsdocgia, x);
                         khoathe(dshoten, x);
-                        cout << "\nKhoa the thanh cong!" << endl;
-                        system("pause");
                         break;
                     }
                     case 5:{
-                        system("cls");
+                        
                         cout << "1. In theo ho ten" << endl;
                         cout << "2. In theo ma the" << endl;
                         cout << "Lua chon: ";
                         int lc3; 
                         cin >> lc3;
-                        system("cls");
+                        
                         if (lc3 == 1){
                             incay(dshoten);
                         } else if (lc3 == 2){
                             incay(dsdocgia);
                         }
-                        system("pause");
+                        
                         break;
                     }
                     case 6:{           
@@ -928,21 +974,12 @@ int main() {
                         savefiletree(dsdocgia,f);
                         f.close();
                         break;}
-                    case 7:{
-                        ifstream Fout("thedocgiadata.txt");
-                        if(!Fout){
-                            cout << "No"<<endl;
-                            break;
-                        }
-                        loadfile(dsdocgia,Fout);
-                        Fout.close();
-                        break;}   
                 }
                 break;
             }
             
             case 2:{ // QUAN LY DAU SACH
-                system("cls");
+                
                 cout << "===== QUAN LY DAU SACH =====" << endl;
                 cout << "1. Nhap dau sach" << endl;
                 cout << "2. Xoa dau sach" << endl;
@@ -955,36 +992,36 @@ int main() {
                 int lc2;
                 cin >> lc2;
                 if(lc2 == 1){
-                    system("cls");
+                    
                     NhapDauSach(dsdausach);
-                    system("pause");
+                    
                 }
                 else if (lc2 == 2){
-                    system("cls");
+                    
                     XoaDauSach(dsdausach);
-                    system("pause");
+                    
                 }
                 else if (lc2 == 3){
-                    system("cls");
+                    
                     DieuChinhDauSach(dsdausach);
-                    system("pause");
+                    
                 }
                 else if (lc2 == 4){
-                    system("cls");
+                    
                     In_DS_TheLoai(dsdausach);
-                    system("pause");
+                    
                 }
                 else if (lc2 == 5){
-                    system("cls");
+                    
                     Tim_Sach_Ten(dsdausach);
-                    system("pause");
+                    
                 }
                 break;
             }
             
             default:
                 cout << "Lua chon khong hop le!" << endl;
-                system("pause");
+                
         }
     } while(1);
     delete dsdausach;
