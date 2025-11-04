@@ -233,3 +233,23 @@ void stringdg(const string& s,string &end){
         end+=tmp;
 }
 };
+string chuanhoa_kitu_sach(string s){
+    stringstream ss(s);
+    string temp;// luu tam 1 tu
+    string result = "";
+    bool isFirstword = true;
+    while (ss >> temp){
+        s[0] = toupper(temp[0]);
+        for (int i=1; i<temp.length(); i++){
+            s[i] = tolower(temp[i]);
+        }
+    }
+    if (isFirstword){
+        result = temp;
+        isFirstword = false;
+    }
+    else{
+        result += " " + temp;
+    }
+    return result;
+}
