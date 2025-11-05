@@ -1,4 +1,4 @@
-10
+15
 ********
 9780134494166|Clean Architecture|432|Robert C. Martin|2017|Lap trinh|4
 9780134494166-K0L1Z2|0|Ke chinh
@@ -25,6 +25,13 @@
 9780735619678-G5H6J7|2|Ke phu 2
 5
 ------------
+9781491950296|Designing Data-Intensive Applications|616|Martin Kleppmann|2017|Co so du lieu|4
+9781491950296-W6E7R8|0|Ke chinh
+9781491950296-T9Y0U1|0|Ke phu 1
+9781491950296-I2O3P4|1|Ke chinh
+9781491950296-A5S6D7|0|Ke phu 2
+1
+------------
 9780132778046|Effective C++|320|Scott Meyers|2005|Lap trinh|3
 9780132778046-O1P2A3|0|Ke chinh
 9780132778046-S4D5F6|0|Ke phu 1
@@ -37,7 +44,7 @@
 9780134685991-M7N8P9|1|Ke chinh
 2
 ------------
-9781617294136|Grokking Algorithms|256|Aditya Bhargava|2016|Lap trinh|3
+9781617294136|Grokking Algorithms|256|Aditya Bhargava|2016|Toan hoc|3
 9781617294136-R2T3Y4|0|Ke chinh
 9781617294136-U5I6O7|0|Ke phu 1
 9781617294136-P8A9S0|1|Ke chinh
@@ -48,7 +55,7 @@
 9780596007126-T1Y2U3|0|Ke phu 1
 0
 ------------
-9780262033848|Introduction to Algorithms|1312|Thomas H. Cormen|2009|Lap trinh|5
+9780262033848|Introduction to Algorithms|1312|Thomas H. Cormen|2009|Toan hoc|5
 9780262033848-D1F2G3|0|Ke chinh
 9780262033848-H4J5K6|1|Ke phu 2
 9780262033848-L7Z8X9|0|Ke chinh
@@ -65,10 +72,40 @@
 9781449355739-Y8U9I0|2|Ke phu 2
 4
 ------------
+9780316769174|Nghia Dung Cuoc Song|384|Viktor Frankl|2020|Tam ly hoc|5
+9780316769174-A1B2C3|0|Ke chinh
+9780316769174-D4E5F6|0|Ke phu 1
+9780316769174-G7H8I9|1|Ke phu 2
+9780316769174-J0K1L2|0|Ke chinh
+9780316769174-M3N4O5|0|Ke phu 1
+3
+------------
+9780385490818|Sapiens|512|Yuval Noah Harari|2015|Lich su|4
+9780385490818-P6Q7R8|0|Ke chinh
+9780385490818-S9T0U1|1|Ke phu 1
+9780385490818-V2W3X4|0|Ke phu 2
+9780385490818-Y5Z6A7|0|Ke chinh
+7
+------------
+9780137081073|The Clean Coder|256|Robert C. Martin|2011|Ky nang mem|3
+9780137081073-I4O5P6|0|Ke chinh
+9780137081073-A7S8D9|0|Ke phu 2
+9780137081073-F0G1H2|0|Ke phu 1
+1
+------------
 9780201616224|The Pragmatic Programmer|352|Andrew Hunt|1999|Lap trinh|4
 9780201616224-H6J7K8|0|Ke chinh
 9780201616224-L9Z0X1|1|Ke phu 2
 9780201616224-C2V3B4|0|Ke chinh
 9780201616224-N5M6Q7|0|Ke phu 1
 1
+------------
+9780143127741|Thinking Fast and Slow|499|Daniel Kahneman|2011|Tam ly hoc|6
+9780143127741-B8C9D0|0|Ke chinh
+9780143127741-E1F2G3|0|Ke phu 1
+9780143127741-H4I5J6|1|Ke chinh
+9780143127741-K7L8M9|0|Ke phu 2
+9780143127741-N0O1P2|0|Ke phu 1
+9780143127741-Q3R4S5|2|Ke phu 2
+8
 ------------
