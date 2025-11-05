@@ -5,8 +5,8 @@ using namespace std;
 const int MAX_DAUSACH = 10000;
 
 struct Sach {
-    char MASACH[24]; // Ma sach theo thu vien
-    int trangthai; // =0 dc muon , =1 đã mượn, =2 đã thanh lý
+    string MASACH; // Ma sach theo thu vien
+    int trangthai; // =0 chua muon , =1 đã mượn, =2 đã thanh lý
     char vitri[51];
 };
 
@@ -18,7 +18,7 @@ typedef nodeSach* SACH;
 
 struct DauSach {
     char ISBN[15];
-    char TENSACH[101];
+    string TENSACH;
     int SOTRANG;
     char TACGIA[51];
     int NAMXUATBAN;
@@ -48,8 +48,8 @@ Date time(){
     return a;
 };
 struct MuonTra {
-    char TENSACH[101];
-    char MASACH[16];
+    string TENSACH;
+    string MASACH;
     string NgayMuon;
     string NgayTra;
     int trangthai2; // =0 đang mượn , =1 đã trả , =2 là mất sách
@@ -234,16 +234,17 @@ void xoathe(TreeDocGia& a, int x ){   // xóa thẻ trong cây
     }
     dieuchinhmathe(a->right,tmp);
 };
-void indsmuontra(MT & a){   // in ds mượn trả đang mượn
+void indsmuontra(MT  a){   // in ds mượn trả đang mượn
     MT p = a;
-    while(p == NULL){
+    cout <<"yes"<<endl;
+    while(p != NULL){
         if(p->mt.trangthai2==0){
         cout << p->mt.MASACH <<" "<<p->mt.TENSACH<<" "<< p->mt.NgayMuon<<" "<<p->mt.NgayTra<<" "<<p->mt.trangthai2<<endl;
         }
         p = p->next;
     }
 };
-void checkdsmuonsach(TreeDocGia & a, int x ){  // in danh sách mượn trả
+void checkdsmuonsach(TreeDocGia  a, int x ){  // in danh sách mượn trả
     if(a == NULL){
         return;
     }
@@ -257,10 +258,10 @@ void checkdsmuonsach(TreeDocGia & a, int x ){  // in danh sách mượn trả
         indsmuontra(a->dg.dsmuontra);
     }   
 };
-void changebook(DS_DAUSACH & a,const char* s,const char* t,int x){
-    for(int i = 0 ; i < a.n;++i){
-        if(a.nodes[i]->TENSACH == t){
-            SACH tmp = a.nodes[i]->dms;
+void changebook(DS_DauSach & a,const string s,const string t,int x){
+    for(int i = 0 ; i < a->n;++i){
+        if(a->nodes[i]->TENSACH == t){
+            SACH tmp = a->nodes[i]->dms;
             while(tmp != NULL){
                 if(tmp->data.MASACH == s){
                     tmp->data.trangthai =x;
@@ -271,7 +272,7 @@ void changebook(DS_DAUSACH & a,const char* s,const char* t,int x){
         }
     }
 };
-void checkdaymt(TreeDocGia & b,Date & a){
+void checkdaymt(TreeDocGia & b,Date  a){
     MT p = b->dg.dsmuontra;
     int ketqua;
     string s;
@@ -309,7 +310,7 @@ void checkdaymt(TreeDocGia & b,Date & a){
        p = p->next;
     }
 };
-void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
+void muonsach(DS_DauSach & a, TreeDocGia & b,const string s,int x){
     if(b == NULL){
         return; 
     }
@@ -321,7 +322,9 @@ void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
     }
     else {
         Date t = time();
-        checkdaymt(b,t);
+        if(b->dg.dsmuontra!=NULL){
+            checkdaymt(b,t);
+        };
         if(b->dg.sachmuon >= 3){
           cout << "sinh vien nay dang muon 3 cuon sach"<<endl;
           return;
@@ -330,35 +333,32 @@ void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
              cout << "the bi khoa "<<endl;
              return;
         }
-        // thiếu nếu đang giữ sách quá 7 ngày thì ko cho mượn
-        for(int i = 0 ; i < a.n;++i){
-            if(strcmp(a.nodes[i]->TENSACH,s)==0){ // dò tên sách trùng
-                SACH temp = a.nodes[i]->dms;
-                while(temp == NULL){      
+        for(int i = 0 ; i < a->n;++i){
+            if(a->nodes[i]->TENSACH == s){ // dò tên sách trùng
+                SACH temp = a->nodes[i]->dms;
+                while(temp != NULL){      
                     if(temp->data.trangthai == 0){ // dò sách đó có ai mượn chưa
                         MT tmp = makeMT();
                         MT p = b->dg.dsmuontra;
-                        if(p == NULL){
                          p = tmp;
-                         strcpy(tmp->mt.MASACH,temp->data.MASACH);
+                         tmp->mt.MASACH = temp->data.MASACH;
+                         tmp->mt.TENSACH = a->nodes[i]->TENSACH;
                          tmp->mt.trangthai2 = 0;
                          b->dg.sachmuon ++;
                          temp->data.trangthai =1;
-                         a.nodes[i]->slm ++;
+                         a->nodes[i]->slm ++;
                          tmp->mt.NgayMuon = to_string(t.day) + "/"+ to_string(t.month) + "/" +to_string(t.year);
+                        if(b->dg.dsmuontra == NULL){
+                            b->dg.dsmuontra = tmp;
+                         cout << " muon thanh cong"<<endl;
                          return;
                         }
                         else{
                             while(p->next!=NULL){
                                 p = p->next;
                             }
-                            strcpy(tmp->mt.MASACH,a.nodes[i]->dms->data.MASACH); // đã mượn
-                         tmp->mt.trangthai2 = 0;
-                            p->next = tmp;
-                            b->dg.sachmuon ++;
-                            temp->data.trangthai =1;
-                             a.nodes[i]->slm ++;
-                             tmp->mt.NgayMuon = to_string(t.day) + "/"+ to_string(t.month) + "/" +to_string(t.year);
+                             p->next = tmp;
+                             cout << " muon thanh cong"<<endl;
                             return;
                         }
                     }
@@ -368,7 +368,7 @@ void muonsach(DS_DAUSACH & a, TreeDocGia & b,const char* s,int x){
         }
     }
 };
-void trasach(TreeDocGia& a,DS_DAUSACH & b, int x,const char* s,const char* t){
+void trasach(TreeDocGia& a,DS_DauSach & b, int x,string s, string t){
      if(a == NULL){
         return; 
     }
@@ -386,7 +386,10 @@ void trasach(TreeDocGia& a,DS_DAUSACH & b, int x,const char* s,const char* t){
             if (temp->mt.MASACH == s){
                 temp->mt.trangthai2 = 1 ;
                 temp->mt.NgayTra = to_string(TIME.day)+"/"+to_string(TIME.month)+"/"+to_string(TIME.year);
+                cout <<"Da Tra Sach"<<endl;
+                return;
             }
+            temp = temp->next;
          }
     }
 };
@@ -395,14 +398,15 @@ void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
     DauSach tmp[10];
     for (int i = 0; i < a->n ; ++i)
     {    if(cnt < 10){
-         tmp[cnt++].slm = a->nodes[i]->slm;
-         strcpy(tmp[cnt].TENSACH,a->nodes[i]->TENSACH);
+         tmp[cnt].slm = a->nodes[i]->slm;
+         tmp[cnt].TENSACH = a->nodes[i]->TENSACH;
+         cnt++;
     }
         else {
-            for(int j = 0 ; j <cnt;++i){
+            for(int j = 0 ; j <cnt;++j){
                  if(tmp[j].slm <a->nodes[i]->slm){
                     tmp[j].slm = a->nodes[i]->slm;
-                    strcpy(tmp[j].TENSACH ,a->nodes[i]->TENSACH);
+                    tmp[j].TENSACH =a->nodes[i]->TENSACH;
                  }
             }
             for(int i = 0 ; i < cnt ; ++i){
@@ -410,11 +414,11 @@ void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
                     if(tmp[i].slm < tmp[j].slm){
                         DauSach temp;
                         temp.slm = tmp[i].slm;
-                        strcpy(temp.TENSACH,tmp[i].TENSACH);
+                        temp.TENSACH=tmp[i].TENSACH;
                         tmp[i].slm = tmp[j].slm;
-                        strcpy(tmp[i].TENSACH,tmp[j].TENSACH);
+                        tmp[i].TENSACH=tmp[j].TENSACH;
                         tmp[j].slm = temp.slm;
-                        strcpy(tmp[j].TENSACH,temp.TENSACH);
+                        tmp[j].TENSACH=temp.TENSACH;
                     }
                 }
             }
@@ -429,7 +433,7 @@ void luudsquahan(TreeDocGia & a , DS_TheDocgia & b){
         return;
     }
     luudsquahan(a->left,b);
-     if(a->dg.quahan != 0){
+     if(a->dg.quahan >= 7){
         b.list[b.cnt++] = a->dg;
      }
     luudsquahan(a->right,b);
@@ -528,7 +532,7 @@ void loadfilesach(DS_DauSach &ds_dausach, ifstream &f){
         string value;
 
         getline(ss, value, '|'); strcpy(ds_dausach->nodes[i]->ISBN, value.c_str());
-        getline(ss, value, '|'); strcpy(ds_dausach->nodes[i]->TENSACH, value.c_str());
+        getline(ss, value, '|');   ds_dausach->nodes[i]->TENSACH= value;
         chuanhoa_kitu_sach(ds_dausach->nodes[i]->TENSACH);
         getline(ss, value, '|'); ds_dausach->nodes[i]->SOTRANG = stoi(value);
         getline(ss, value, '|'); strcpy(ds_dausach->nodes[i]->TACGIA, value.c_str());
@@ -544,7 +548,7 @@ void loadfilesach(DS_DauSach &ds_dausach, ifstream &f){
             stringstream ss(line);
             SACH newsach = new nodeSach();
             
-            getline(ss, value, '|'); strcpy(newsach->data.MASACH, value.c_str());
+            getline(ss, value, '|'); newsach->data.MASACH = value;
             getline(ss, value, '|'); newsach->data.trangthai = stoi(value);
             getline(ss, value, '|'); strcpy(newsach->data.vitri, value.c_str());
             
@@ -582,7 +586,7 @@ string randomMaSach(char *ISBN){ // tạo mã sách có ISBN và 6 chữ số
 bool MaSachTrung(DauSach *ds, string &Ma){
     SACH p = ds->dms;
     while (p != NULL) {
-        if (strcmp(p->data.MASACH, Ma.c_str()) == 0)
+        if (p->data.MASACH == Ma)
             return true;
         p = p->next;
     }
@@ -601,7 +605,9 @@ void NhapDauSach(DS_DauSach &ds_dausach){
 
     DauSach *p = new DauSach();
     NhapMa("Nhap ISBN(13 so): ", p->ISBN, 15);
-    NhapChuoi("Nhap ten sach: ", p->TENSACH,101);
+    string s;
+    cout << "Nhap ten sach: "; getline(cin,s);
+    stringdg(s,p->TENSACH);
     chuanhoa_kitu_sach(p->TENSACH);
     p->SOTRANG = NhapSo("Nhap so trang: ");
     NhapChuoi("Nhap tac gia: ", p->TACGIA, 51);
@@ -619,7 +625,7 @@ void NhapDauSach(DS_DauSach &ds_dausach){
         do {
             MaSach = randomMaSach(p->ISBN);
         } while(MaSachTrung(p, MaSach));
-        strcpy(newSach->data.MASACH, MaSach.c_str()); // tao ma thu vien cho sach
+        newSach->data.MASACH = MaSach; // tao ma thu vien cho sach
         newSach->data.trangthai = 0; // set duoc muon
         // hỏi người dùng muốn cất kệ nào(chưa làm)
         while (1){
@@ -646,7 +652,7 @@ void NhapDauSach(DS_DauSach &ds_dausach){
     
     int ViTriChen = ds_dausach->n;
     for(int i = 0; i < ds_dausach->n; i++){
-        if(strcmp(p->TENSACH, ds_dausach->nodes[i]->TENSACH) < 0){
+        if(p->TENSACH < ds_dausach->nodes[i]->TENSACH){
             ViTriChen = i;
             break;
         }
@@ -784,8 +790,8 @@ void DieuChinhDauSach(DS_DauSach &ds_dausach) {
     // Tạo một bản sao tạm thời để lưu các thay đổi
     DauSach data_moi = *p_can_sua;
     bool ten_sach_thay_doi = false;
-    char ten_sach_cu[101];
-    strcpy(ten_sach_cu, p_can_sua->TENSACH); // Lưu lại tên cũ để so sánh
+    string ten_sach_cu;
+    ten_sach_cu = p_can_sua->TENSACH; // Lưu lại tên cũ để so sánh
 
     int lua_chon;
     do {
@@ -803,13 +809,13 @@ void DieuChinhDauSach(DS_DauSach &ds_dausach) {
         cout << "Nhap lua chon cua ban: ";
         cin >> lua_chon;
         cin.ignore(); // Xóa bộ đệm
-
+        string s;
         switch (lua_chon) {
             case 1:
-                // Giả sử bạn có hàm NhapChuoi trong mylib.h
-                NhapChuoi("Nhap ten sach moi: ", data_moi.TENSACH, 101);
+                cout << "Nhap ten sach moi: "; cin >> s;
+                stringdg(s,ten_sach_cu);
                 // Đánh dấu nếu tên sách (khóa sắp xếp) bị thay đổi
-                if (strcmp(ten_sach_cu, data_moi.TENSACH) != 0) {
+                if (ten_sach_cu != data_moi.TENSACH) {
                     ten_sach_thay_doi = true;
                 } else {
                     ten_sach_thay_doi = false; // Có thể người dùng gõ lại y như cũ
@@ -851,7 +857,7 @@ void DieuChinhDauSach(DS_DauSach &ds_dausach) {
         cout << "Phat hien thay doi ten sach, dang cap nhat lai vi tri sap xep..." << endl;
         
         // Cập nhật tên mới vào con trỏ
-        strcpy(p_can_sua->TENSACH, data_moi.TENSACH);
+        p_can_sua->TENSACH = data_moi.TENSACH;
 
         // Lấy con trỏ ra khỏi mảng
         DauSach* p_can_di_chuyen = p_can_sua; // p_can_sua === ds_dausach->nodes[vi_tri_sua]
@@ -867,7 +873,7 @@ void DieuChinhDauSach(DS_DauSach &ds_dausach) {
         // Tìm vị trí chèn mới 
         int vi_tri_chen_moi = ds_dausach->n - 1; // Mặc định chèn vào cuối
         for (int i = 0; i < ds_dausach->n - 1; i++) {
-            if (strcmp(p_can_di_chuyen->TENSACH, ds_dausach->nodes[i]->TENSACH) < 0) {
+            if (p_can_di_chuyen->TENSACH < ds_dausach->nodes[i]->TENSACH) {
                 vi_tri_chen_moi = i;
                 break;
             }
@@ -937,7 +943,7 @@ void In_DS_TheLoai(DS_DauSach &ds_dausach){
         // sap xep group theo TENSACH (bubble sort)
         for (int i = 0; i < group_count - 1; ++i){
             for (int j = i + 1; j < group_count; ++j){
-                if (strcmp(group[i]->TENSACH, group[j]->TENSACH) > 0){
+                if (group[i]->TENSACH > group[j]->TENSACH){
                     DauSach* tmp = group[i];
                     group[i] = group[j];
                     group[j] = tmp;
@@ -963,7 +969,7 @@ void Tim_Sach_Ten(DS_DauSach &ds_dausach){
     bool found = false;
     cout << "\n========Sach " << TenSach << "=========" <<endl;
     for (int i = 0; i < ds_dausach->n; i++){
-        if (strcmp(ds_dausach->nodes[i]->TENSACH, TenSach) == 0){
+        if (ds_dausach->nodes[i]->TENSACH == TenSach){
             cout << "ISBN: " << ds_dausach->nodes[i]->ISBN << endl;
             cout << "Ten sach: " << ds_dausach->nodes[i]->TENSACH << endl;
             cout << "Tac gia: " << ds_dausach->nodes[i]->TACGIA << endl;
@@ -977,6 +983,7 @@ int main() {
     DS_DauSach dsdausach = new DS_DAUSACH();
     TreeDocGia dsdocgia = NULL;
     TreeDocGia dshoten = NULL;
+    DS_TheDocgia quahan ;
     ifstream Fout("thedocgiadata.txt");
         if(!Fout){
          cout << "No"<<endl;
@@ -1016,8 +1023,13 @@ int main() {
                 cout << "3. Hieu chinh the doc gia" << endl;
                 cout << "4. Khoa the doc gia" << endl;
                 cout << "5. In danh sach doc gia" << endl;
-                cout << "0. Quay lai" << endl;
                 cout << "6. Luu file "<<endl;
+                cout << "7. Muon Sach "<<endl;
+                cout << "8. in danh sach muon"<<endl;
+                cout << "9. Tra sach "<<endl;
+                cout << "10. 10 Sach Muon Nhieu Nhat"<<endl;
+                cout << "11. In danh sach nguoi muon qua han"<<endl;
+                cout << "0. Quay lai" << endl;
                 cout << "===========================" << endl;
                 cout << "Vui long nhap lua chon: ";
                 
@@ -1039,8 +1051,9 @@ int main() {
                     case 2:{
                         
                         cout << "Nhap ma the muon xoa: ";
-                        int x; 
-                        cin >> x;
+                        cin.ignore();
+                        string sv;getline(cin,sv);int x;
+                        number(sv,x);
                         xoathe(dsdocgia, x);
                         xoathe(dshoten, x);
                         break;
@@ -1091,8 +1104,9 @@ int main() {
                     case 4:{
                         
                         cout << "Nhap ma the muon khoa: ";
-                        int x; 
-                        cin >> x;
+                        cin.ignore();
+                        string sv;getline(cin,sv);int x;
+                        number(sv,x);
                         khoathe(dsdocgia, x);
                         khoathe(dshoten, x);
                         break;
@@ -1122,6 +1136,50 @@ int main() {
                         savefiletree(dsdocgia,f);
                         f.close();
                         break;}
+                    case 7:{
+                        cout <<"ma the sinh vien muon sach ";
+                        cin.ignore();
+                        string sv;getline(cin,sv);int x;
+                        number(sv,x);
+                        string sach;
+                        cout <<"Ten Sach "; getline(cin,sach);
+                        string chan;
+                        stringdg(sach,chan);
+                        muonsach(dsdausach,dsdocgia,chan,x);
+                        break;
+                    }
+                    case 8:{
+                        cout << "ma the sinh vien:";
+                        cin.ignore();
+                        string s; getline(cin,s);
+                        int x; number(s,x);
+                        checkdsmuonsach(dsdocgia,x);
+                        break;
+                    }
+                    case 9:{
+                         cout <<"ma the sinh vien muon tra ";
+                         cin.ignore();
+                         string sv;getline(cin,sv);int x;
+                        number(sv,x);
+                        string s,m,sach,ma;
+                        cout <<" Ten Sach "; getline(cin,s);
+                        stringdg(s,sach);
+                        cout << sach<<endl;
+                        cout<<"Ma Sach "; getline(cin,m);
+                        chuanhoamasach(m,ma);
+                        cout << ma<<endl;
+                        trasach(dsdocgia,dsdausach,x,ma,sach); 
+                        break;
+                    }
+                    case 10:{
+                        top10book(dsdausach);
+                        break;
+                    }
+                    case 11:{
+                         luudsquahan(dsdocgia,quahan);
+                         inquahan(quahan);
+                        break;
+                    }
                 }
                 break;
             }
