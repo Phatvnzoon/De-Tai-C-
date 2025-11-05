@@ -886,23 +886,72 @@ void DieuChinhDauSach(DS_DauSach &ds_dausach) {
     
 }
 void In_DS_TheLoai(DS_DauSach &ds_dausach){
-    char theloai[31];
-    cout << "Nhap the loai: ";
-    cin.ignore();
-    cin.getline(theloai,31);
-    cout <<"\n=======Sach theo the loai: " << theloai <<"========" << endl;
-    bool found = false;
-    int thutu = 0;
-    for (int i=0; i<ds_dausach->n; i++){
-        if(strcmp(ds_dausach->nodes[i]->THELOAI, theloai) == 0){
-            found = true;
-            thutu += 1;
-            cout << thutu << ". " << ds_dausach->nodes[i]->TENSACH << endl; 
-        }
-        SACH p = ds_dausach->nodes[i]->dms; // Insert First vao mang in
+    if (ds_dausach == NULL || ds_dausach->n == 0){
+        cout << "Khong co dau sach trong thu vien.\n";
+        return;
     }
-    if (!found){
-        cout << "Khong tim thay sach cua the loai nay!" << endl;
+
+    // Thu thap danh sach the loai duy nhat
+    char theloai_list[MAX_DAUSACH][31];
+    int theloai_count = 0;
+
+    for (int i = 0; i < ds_dausach->n; ++i){
+        char *tl = ds_dausach->nodes[i]->THELOAI;
+        bool found = false;
+        for (int j = 0; j < theloai_count; ++j){
+            if (strcmp(theloai_list[j], tl) == 0){
+                found = true;
+                break;
+            }
+        }
+        if (!found){ 
+            strncpy(theloai_list[theloai_count], tl, 30);
+            theloai_list[theloai_count][30] = '\0';
+            theloai_count++;
+        }
+    }
+
+    // Sap xep the loai tang dan (bubble sort)
+    for (int i = 0; i < theloai_count - 1; ++i){
+        for (int j = i + 1; j < theloai_count; ++j){
+            if (strcmp(theloai_list[i], theloai_list[j]) > 0){
+                char tmp[31];
+                strcpy(tmp, theloai_list[i]);
+                strcpy(theloai_list[i], theloai_list[j]);
+                strcpy(theloai_list[j], tmp);
+            }
+        }
+    }
+
+    // In theo tung the loai, trong moi the loai sap xep dau sach theo ten tang dan
+    for (int ti = 0; ti < theloai_count; ++ti){
+        cout << "==== The loai: " << theloai_list[ti] << " ====" << endl;
+        // thu thap cac dau sach thuoc the loai nay
+        DauSach* group[MAX_DAUSACH];
+        int group_count = 0;
+        for (int i = 0; i < ds_dausach->n; ++i){
+            if (strcmp(ds_dausach->nodes[i]->THELOAI, theloai_list[ti]) == 0){
+                group[group_count++] = ds_dausach->nodes[i];
+            }
+        }
+        // sap xep group theo TENSACH (bubble sort)
+        for (int i = 0; i < group_count - 1; ++i){
+            for (int j = i + 1; j < group_count; ++j){
+                if (strcmp(group[i]->TENSACH, group[j]->TENSACH) > 0){
+                    DauSach* tmp = group[i];
+                    group[i] = group[j];
+                    group[j] = tmp;
+                }
+            }
+        }
+        // In chi tiet tung dau sach
+        for (int i = 0; i < group_count; ++i){
+            DauSach* d = group[i];
+            cout << "ISBN: " << d->ISBN << " | Ten: " << d->TENSACH
+                 << " | Tac gia: " << d->TACGIA << " | Nam: " << d->NAMXUATBAN
+                 << " | So luong sach: " << d->slsach << " | Luot muon: " << d->slm << endl;
+        }
+        cout << endl;
     }
 }
 
