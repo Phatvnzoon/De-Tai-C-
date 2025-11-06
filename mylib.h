@@ -233,6 +233,28 @@ void stringdg(const string& s,string &end){
         end+=tmp;
 }
 };
+void number(const string  s , int &x){
+    if(s.empty()){
+        cout << "pls insert number"<<endl;
+        return ;
+    }
+    for(char t : s){
+        if(isspace(t)){
+            continue;
+        }
+        if(!isdigit(t)){
+            cout <<"number only"<<endl;
+            return;
+        }
+    }
+   stringstream ss(s);
+   string temp;
+   string kq;
+   while(ss >> temp){
+    kq += temp;
+   }
+   x = stoi(kq);
+}
 string chuanhoa_kitu_sach(string s){
     stringstream ss(s);
     string temp;// luu tam 1 tu
@@ -253,3 +275,15 @@ string chuanhoa_kitu_sach(string s){
     }
     return result;
 }
+void chuanhoamasach(string & a,string &b){
+    string temp;
+    for(char &x : a){
+        if(isalpha(x)){
+            x = toupper(x);
+        }
+    }
+    stringstream ss(a);
+    while(ss>>temp){
+        b += temp;
+    }
+};
