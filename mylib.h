@@ -14,28 +14,6 @@ using namespace std;
 //const int WHITE=15;
 #define Backspace 8
 // add
- 
-char* Pwd () { 
-     static char S[40]; 
-     int i=0;
-     while ((S[i]= getch()) != Enter && i<39) 
-     { 
-        printf ("%c", '*') ; 
-        i++;
-     }
-     S[i]='\0';
-     return S;
-}
-int CheckPwd () {
-    int dem =0; 
-    for ( dem =1 ; dem <=3 ; dem++)
-    { printf( "Password :"); 
-      if (strcmp(Pwd(),PASSWORD) ==0)   return 1;
-      else printf ( "\nPassword sai. Hay nhap lai\n")  ; 
-    }
-    return 0;  
-}
-
 void gotoxy(short x,short y)
 {
         HANDLE hConsoleOutput;
@@ -112,12 +90,35 @@ void clrscr() {
 	system("cls");
 }
 
+void chuanhoa(string & s ){
+    s[0] = toupper(s[0]);
+   for(int i = 1 ; i < s.size();i++){
+      s[i] = tolower(s[i]);
+   }
+}
+void chuanhoachuoi(string &s) {
+    if (s.empty()) return;
+    
+    // Bỏ bớt space trong chuỗi nếu dư
+    string temp;
+    stringstream ss(s);
+    string word;
+    bool first = true;
+    
+    while (ss >> word) {
+        if (!first) temp += " ";
+        chuanhoa(word); 
+        temp += word;
+        first = false;
+    }
+
+    s = temp;
+}
 //Check nhap so
 long long NhapSo(const string& prompt) {
     string input;
-    while (true) {
+    while (1) {
         cout << prompt;
-        cin.ignore();
         getline(cin, input);
         if (input.empty()) {
             cout << "Loi: Vui long nhap so!" << endl;
@@ -148,67 +149,88 @@ long long NhapSo(const string& prompt) {
     }
 }
 
-void NhapChuoi(const string& prompt, char* result, int max_length) {
-    string input;
+void NhapChuoi(const string &prompt, string &end) 
+{
+    string input; 
+    end.clear();   
+
     while (true) {
         cout << prompt;
-        cin.ignore();
-        getline(cin, input);
+        
+        
+        if (!getline(cin, input)) return; 
+
+        //Khong duoc rong
         if (input.empty()) {
-            cout << "Loi: Vui long nhap chuoi!" << endl;
-            continue;
+            cout << "vui long nhap chuoi" << endl;
+            continue; 
         }
-        bool valid = true;
-        for (char ch : input) {
-            if (!isalpha(ch) && ch != ' ') {
-                valid = false;
-                break;
+
+        // Chi duoc chua chu cai va khoang trang
+        bool valid = true; 
+        for (char x : input) {
+            
+            if (isspace(x)) {
+                continue; // Neu la khoang trang, bo qua, kiem tra ky tu tiep
+            }
+            if (!isalpha(x)) {
+                // Neu ky tu khong phai khoang trang VA cung khong phai chu cai
+                cout << "Vui long chi nhap tu" << endl;
+                valid = false; 
+                break;         
             }
         }
+
         if (!valid) {
-            cout << "Loi: Vui long chi nhap chu cai va khoang trang!" << endl;
             continue;
         }
-        strncpy(result, input.c_str(), max_length - 1);
-        result[max_length - 1] = '\0';
-        return;
+        end = input;
+        chuanhoachuoi(end);
+        
+        return; 
     }
 }
 
-void NhapMa(const string& prompt, char* result, int max_length) {
-    string input;
-    while (true) {
-        cout << prompt;
-        getline(cin, input);
-        if (input.empty()) {
-            cout << "Loi: Vui long nhap ma!" << endl;
+void NhapISBN(const string& prompt, string &result) {
+    cout << prompt;
+    result.clear(); 
+
+    while (result.length() < 13) {
+        char ch = _getch();
+
+        // Kiem tra DAU CACH
+        if (ch == ' ') {
+            cout << "\nLoi: Khong duoc phep nhap dau cach! Vui long nhap lai tu dau." << endl;
+            Sleep(1000);
+            cout << prompt;
+            result.clear();
+            continue; 
+        }
+        else if (isalpha(ch)){
+            cout << "\nLoi: Khong duoc phep nhap chu! Vui long nhap lai tu dau." << endl;
+            Sleep(1000);
+            cout << prompt;
+            result.clear();
             continue;
         }
-        bool valid = true;
-        for (char ch : input) {
-            if (!isalnum(ch) && ch != '-' && ch != '_') {
-                valid = false;
-                break;
+        else if (ch == Backspace) { 
+            if (!result.empty()) {
+                result.erase(result.length() - 1, 1);
+                cout << "\b \b";   // Xoa ky tu tren man hinh
             }
+        }    
+        // Xu ly CHU SO
+        else if (isdigit(ch)) {
+            result += ch; // Them so vao chuoi
+            cout << ch;     // Hien thi so do ra man hinh
         }
-        if (!valid) {
-            cout << "Loi: Vui long chi nhap chu cai, so, '-' hoac '_'!" << endl;
-            continue;
-        }
-        for (char& ch : input) {
-            ch = toupper(ch);
-        }
-        strncpy(result, input.c_str(), max_length - 1);
-        result[max_length - 1] = '\0';
-        return;
+
     }
+    cout << endl;
+    return;
 }
-void chuanhoa(string & s ){
-    s[0] = toupper(s[0]);
-   for(int i = 1 ; i < s.size();i++){
-      s[i] = tolower(s[i]);
-   }
-}
+
+
 void stringdg(const string& s,string &end){
     if(s.empty()){
         cout <<"vui long nhap ten"<<endl;
@@ -219,7 +241,7 @@ void stringdg(const string& s,string &end){
             continue;
         }
         if(!isalpha(x)){
-            cout<<" word only"<<endl;
+            cout<<"vui long chi nhap tu"<<endl;
             return;
         }
         }
@@ -231,7 +253,7 @@ void stringdg(const string& s,string &end){
             end +=' ';
         }
         end+=tmp;
-}
+    }
 };
 void number(const string  s , int &x){
     if(s.empty()){
@@ -254,26 +276,6 @@ void number(const string  s , int &x){
     kq += temp;
    }
    x = stoi(kq);
-}
-string chuanhoa_kitu_sach(string s){
-    stringstream ss(s);
-    string temp;// luu tam 1 tu
-    string result = "";
-    bool isFirstword = true;
-    while (ss >> temp){
-        s[0] = toupper(temp[0]);
-        for (int i=1; i<temp.length(); i++){
-            s[i] = tolower(temp[i]);
-        }
-    }
-    if (isFirstword){
-        result = temp;
-        isFirstword = false;
-    }
-    else{
-        result += " " + temp;
-    }
-    return result;
 }
 void chuanhoamasach(string & a,string &b){
     string temp;
