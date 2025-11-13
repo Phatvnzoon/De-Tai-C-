@@ -1,3 +1,4 @@
+
 #include <bits/stdc++.h>
 #include <fstream>
 #include <string>
@@ -237,7 +238,6 @@ void xoathe(TreeDocGia& a, int x ){   // xóa thẻ trong cây
 };
 void indsmuontra(MT  a){   // in ds mượn trả đang mượn
     MT p = a;
-    cout <<"yes"<<endl;
     while(p != NULL){
         if(p->mt.trangthai2==0){
         cout << p->mt.MASACH <<" "<<p->mt.TENSACH<<" "<< p->mt.NgayMuon<<" "<<p->mt.NgayTra<<" "<<p->mt.trangthai2<<endl;
@@ -463,6 +463,14 @@ void savefiletree(TreeDocGia& a,ofstream& f){
     }
     savefiletree(a->left,f);
     f<<a->dg.MATHE<<"|"<<a->dg.HO<<" "<<a->dg.TEN<<"|"<<a->dg.PHAI<<"|"<<a->dg.trangthai<<"|"<<a->dg.sum<<"|"<<a->dg.sachmuon<<"|"<<a->dg.quahan<<endl;
+    MT p = a->dg.dsmuontra;
+    if(p!=NULL){
+    while(p!=NULL){
+      f<<p->mt.MASACH<<"|"<<p->mt.TENSACH<<"|"<<p->mt.NgayMuon<<"|"<<p->mt.NgayTra<<"|"<<p->mt.trangthai2<<endl;
+      p =p->next;
+    }
+    }
+    f<<"------------"<<endl;
     savefiletree(a->right,f);
 };
 void loadfiledocgia(TreeDocGia & a ,TreeDocGia & b, ifstream & f ){
@@ -471,6 +479,7 @@ void loadfiledocgia(TreeDocGia & a ,TreeDocGia & b, ifstream & f ){
         TheDocGia tmp;
         stringstream ss(doc);
         string s;
+        tmp.dsmuontra = NULL;
         getline(ss, s, '|'); tmp.MATHE = stoi(s);
         getline(ss, s, '|');
         int pos = s.find(' ');
@@ -482,6 +491,27 @@ void loadfiledocgia(TreeDocGia & a ,TreeDocGia & b, ifstream & f ){
         getline(ss, s, '|'); tmp.sum = stoi(s);
         getline(ss, s, '|'); tmp.sachmuon = stoi(s);
         getline(ss, s, '|'); tmp.quahan = stoi(s);
+        getline(f,doc);
+        while(doc !="------------" ){
+            MuonTra line;
+            stringstream ss(doc);
+            MT head=NULL;MT tail = NULL;
+            getline(f,doc);
+            getline(ss, s, '|'); line.MASACH = s ;
+            getline(ss, s, '|'); line.TENSACH =s;
+            getline(ss, s, '|'); line.NgayMuon = s;
+            getline(ss, s, '|'); line.NgayTra = s;
+            getline(ss, s, '|'); line.trangthai2 = stoi(s);
+            MT ds = makeMT();
+            ds->mt = line;
+            if(head == NULL){
+                head = ds;
+                tail = ds;
+            }
+            else{ tail->next = ds;
+                tail = tail->next;}
+            tmp.dsmuontra = head;    
+        }
        TreeDocGia temp = new nodeDocGia();
        temp->dg = tmp;
        temp->left = temp->right = NULL;
