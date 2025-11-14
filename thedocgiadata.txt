@@ -1,10 +1,21 @@
 1001|le thi hong|Nu|1|2020|2|0
+------------
 1002|tran van nam|Nam|0|1888|1|1
+------------
 1003|ngo minh duc|Nam|1|3000|0|0
+------------
 1004|pham hoang yen|Nu|1|2500|0|0
+------------
 1005|doan anh tuan|Nam|0|1999|1|0
+------------
 1006|nguyen thi lan anh|Nu|1|3333|0|0
+------------
 1007|bui minh khang|Nam|1|2777|0|1
+------------
 1008|pham thi thao|Nu|1|2111|0|0
+------------
 1009|vu duc dat|Nam|1|1900|0|0
-1383|nguyen minh|Nam|1|1090|0|0
+------------
+1383|nguyen minh|Nam|1|1090|1|0
+9780132350884-Q1W2E3|Clean Code|13/11/2025||0
+------------
