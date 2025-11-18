@@ -1,11 +1,4 @@
-#include <conio.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <dos.h>
-#include <string.h>
-#include <windows.h>
-#include <math.h>
-#include <limits>
 #include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
