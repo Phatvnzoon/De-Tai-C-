@@ -6,7 +6,17 @@
 #include <windows.h>
 #include <math.h>
 #include <limits>
-#include <bits/stdc++.h>
+#include <conio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <windows.h>
+#include <math.h>
+#include <limits>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cctype>
 using namespace std;
 #define Enter 13
 //const int WHITE=15;
