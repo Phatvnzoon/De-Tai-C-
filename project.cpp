@@ -1,7 +1,21 @@
-
-#include <bits/stdc++.h>
 #include <fstream>
 #include <string>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <ctime>
+#include <cstdlib>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <map>
+#include <set>
+#include <limits>
+#include <cmath>
 #include "mylib.h"
 using namespace std;
 const int MAX_DAUSACH = 10000;
@@ -486,7 +500,7 @@ void loadfiledocgia(TreeDocGia & a ,TreeDocGia & b, ifstream & f ){
         if (pos != string::npos) {
         tmp.HO = s.substr(0,pos);
         tmp.TEN = s.substr(pos +1);}
-        getline(ss, s, '|'); strcpy(tmp.PHAI, s.c_str());
+        getline(ss, s, '|'); strcpy_s(tmp.PHAI, s.c_str());
         getline(ss, s, '|'); tmp.trangthai = stoi(s);
         getline(ss, s, '|'); tmp.sum = stoi(s);
         getline(ss, s, '|'); tmp.sachmuon = stoi(s);
@@ -1023,268 +1037,24 @@ void Tim_Sach_Ten(DS_DauSach &ds_dausach){
         }
     }
 }
-int main() {
-    DS_DauSach dsdausach = new DS_DAUSACH();
-    TreeDocGia dsdocgia = NULL;
-    TreeDocGia dshoten = NULL;
-    DS_TheDocgia quahan;
-    ifstream Fout("thedocgiadata.txt");
-        if(!Fout){
-         cout << "No"<<endl;
-            }
-        loadfiledocgia(dsdocgia,dshoten,Fout);
-        Fout.close();
-    ifstream FoutSach("danhmucsachdata.txt");
-    if(!FoutSach){
-        cout << "Khong the mo file" << endl;
-    }
-    loadfilesach(dsdausach, FoutSach);
-    FoutSach.close();
+// int main() {
+//     DS_DauSach dsdausach = new DS_DAUSACH();
+//     TreeDocGia dsdocgia = NULL;
+//     TreeDocGia dshoten = NULL;
+//     DS_TheDocgia quahan;
+//     ifstream Fout("D:/code/thedocgiadata.txt");
+//         // if(!Fout){
+//         //  cout << "No"<<endl;
+//         //     }
+//         loadfiledocgia(dsdocgia,dshoten,Fout);
+//         Fout.close();
+//     ifstream FoutSach("D:/code/danhmucsachdata.txt");
+//     // if(!FoutSach){
+//     //     cout << "Khong the mo file" << endl;
+//     // }
+//     loadfilesach(dsdausach, FoutSach);
+//     FoutSach.close();
     
-    do{
-        cout << "========== QUAN LY THU VIEN ==========" << endl;
-        cout << "1. Quan ly doc gia" << endl;
-        cout << "2. Quan ly dau sach" << endl;
-        cout << "3. Quan ly muon/tra sach" << endl;
-        cout << "4. Thong ke" << endl;
-        cout << "0. Thoat" << endl;
-        cout << "======================================" << endl;
-        cout << "Vui long nhap lua chon: ";
-        
-        int lc; 
-        cin >> lc;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // thần chú
-        switch(lc){
-            case 0:
-                cout << "Tam biet!" << endl;
-                return 0;
-                
-            case 1:{ // QUAN LY DOC GIA
-                
-                cout << "===== QUAN LY DOC GIA =====" << endl;
-                cout << "1. Them the doc gia" << endl;
-                cout << "2. Xoa the doc gia" << endl;
-                cout << "3. Hieu chinh the doc gia" << endl;
-                cout << "4. Khoa the doc gia" << endl;
-                cout << "5. In danh sach doc gia" << endl;
-                cout << "6. Luu file "<<endl;
-                cout << "7. Muon Sach "<<endl;
-                cout << "8. in danh sach muon"<<endl;
-                cout << "9. Tra sach "<<endl;
-                cout << "10. 10 Sach Muon Nhieu Nhat"<<endl;
-                cout << "11. In danh sach nguoi muon qua han"<<endl;
-                cout << "0. Quay lai" << endl;
-                cout << "===========================" << endl;
-                cout << "Vui long nhap lua chon: ";
-                
-                int lc2; 
-                cin >> lc2;
-                
-                switch (lc2){
-                    case 1:{
-                        
-                        TreeDocGia tmp = taothedocgia();
-                        TreeDocGia temp = new nodeDocGia();
-                        temp->dg = tmp->dg;
-                        temp->left = temp->right = NULL;
-                        caythedocgia(dsdocgia, tmp);
-                        caythehoten(dshoten, temp);
-                        
-                        break;
-                    }
-                    case 2:{
-                        
-                        cout << "Nhap ma the muon xoa: ";
-                        cin.ignore();
-                        string sv;getline(cin,sv);int x;
-                        number(sv,x);
-                        xoathe(dsdocgia, x);
-                        xoathe(dshoten, x);
-                        break;
-                    }
-                    case 3:{
-                        cout <<"Ma The Can Thay Doi:"; int l ; cin >> l;
-                        TheDocGia a ;
-                        string s;
-                        string stwo;
-                        stringstream ss(s);
-                         a.MATHE = l;
-                        cout << "HO: "; cin.ignore();
-                        getline(cin,s);
-                        stringdg(s,a.HO);
-                        while(a.HO.empty()){
-                        cout << "HO: ";
-                        getline(cin,s);
-                        stringdg(s,a.HO);
-                                       }
-                        cout << "Ten: "; 
-                        getline(cin,stwo);
-                        stringdg(stwo,a.TEN);
-                        while(a.TEN.empty()){
-                        cout << "TEN: ";
-                        getline(cin,stwo);
-                        stringdg(stwo,a.TEN);
-                                       }
-                        int x;
-                        cout << "Phai(1.NAM , 2 NU): "; cin >> x ;
-                        if(x == 1){
-                          strcpy(a.PHAI, "Nam");
-                                                  }
-                        if(x==2){
-                          strcpy(a.PHAI, "Nu");
-                                                    }
-                        for(int i = 0 ; i < a.HO.size();i++){
-                             a.sum += a.HO[i];
-                                               }
-                        for(int i = 0 ; i < a.TEN.size();i++){
-                                     a.sum += a.TEN[i];
-                                       }
-                        
-                        dieuchinhmathe(dsdocgia, a);
-                        dieuchinhmathe(dshoten, a);
-                        
-                        break;
-                    }
-                    case 4:{
-                        
-                        cout << "Nhap ma the muon khoa: ";
-                        cin.ignore();
-                        string sv;getline(cin,sv);int x;
-                        number(sv,x);
-                        khoathe(dsdocgia, x);
-                        khoathe(dshoten, x);
-                        break;
-                    }
-                    case 5:{
-                        
-                        cout << "1. In theo ho ten" << endl;
-                        cout << "2. In theo ma the" << endl;
-                        cout << "Lua chon: ";
-                        int lc3; 
-                        cin >> lc3;
-                        
-                        if (lc3 == 1){
-                            incay(dshoten);
-                        } else if (lc3 == 2){
-                            incay(dsdocgia);
-                        }
-                        
-                        break;
-                    }
-                    case 6:{           
-                        ofstream f("thedocgiadata.txt");
-                        if(!f){
-                            cout << "No"<<endl;
-                            break;
-                        }
-                        savefiletree(dsdocgia,f);
-                        f.close();
-                        break;}
-                    case 7:{
-                        cout <<"ma the sinh vien muon sach ";
-                        cin.ignore();
-                        string sv;getline(cin,sv);int x;
-                        number(sv,x);
-                        string sach;
-                        cout <<"Ten Sach "; getline(cin,sach);
-                        string chan;
-                        stringdg(sach,chan);
-                        muonsach(dsdausach,dsdocgia,chan,x);
-                        break;
-                    }
-                    case 8:{
-                        cout << "ma the sinh vien:";
-                        cin.ignore();
-                        string s; getline(cin,s);
-                        int x; number(s,x);
-                        checkdsmuonsach(dsdocgia,x);
-                        break;
-                    }
-                    case 9:{
-                         cout <<"ma the sinh vien muon tra ";
-                         cin.ignore();
-                         string sv;getline(cin,sv);int x;
-                        number(sv,x);
-                        string s,m,sach,ma;
-                        cout <<" Ten Sach "; getline(cin,s);
-                        stringdg(s,sach);
-                        cout << sach<<endl;
-                        cout<<"Ma Sach "; getline(cin,m);
-                        chuanhoamasach(m,ma);
-                        cout << ma<<endl;
-                        trasach(dsdocgia,dsdausach,x,ma,sach); 
-                        break;
-                    }
-                    case 10:{
-                        top10book(dsdausach);
-                        break;
-                    }
-                    case 11:{
-                        luudsquahan(dsdocgia,quahan);
-                        inquahan(quahan);
-                        break;
-                    }
-                }
-                break;
-            }
-            
-            case 2:{ // QUAN LY DAU SACH
-                
-                cout << "===== QUAN LY DAU SACH =====" << endl;
-                cout << "1. Nhap dau sach" << endl;
-                cout << "2. Xoa dau sach" << endl;
-                cout << "3. Dieu chinh dau sach" << endl;
-                cout << "4. In danh sach theo the loai" << endl;
-                cout << "5. Tim sach theo ten" << endl;
-                cout << "6. Luu File" << endl;
-                cout << "0. Quay lai" << endl;
-                cout << "============================" << endl;
-                cout << "Lua chon: ";
-                int lc2;
-                cin >> lc2;
-                cin.ignore(numeric_limits<streamsize>::max(), '\n'); // thần chú
-                switch(lc2) {
-                    case 1:
-                        NhapDauSach(dsdausach);
-                        break;
-                        
-                    case 2:
-                        XoaDauSach(dsdausach);
-                        break;
-                        
-                    case 3:
-                        DieuChinhDauSach(dsdausach);
-                        break;
-                        
-                    case 4:
-                        In_DS_TheLoai(dsdausach);
-                        break;
-                        
-                    case 5:
-                        Tim_Sach_Ten(dsdausach);
-                        break;
-                        
-                    case 6: {
-                        ofstream FinSach("danhmucsachdata.txt");
-                        if(!FinSach) {
-                            cout << "Khong the luu file" << endl;
-                        }
-                        savefilesach(dsdausach, FinSach);
-                        FinSach.close();
-                        break;
-                    }
-                    case 0: break;
-                    default:
-                        cout << "Lua chon khong hop le!" << endl;
-                        break;
-                }
-                break;
-            }
-            
-            default:
-                cout << "Lua chon khong hop le!" << endl;      
-        }
-    } while(1);
-    delete dsdausach;
-    return 0;
-}
+//     delete dsdausach;
+//     return 0;
+// }
