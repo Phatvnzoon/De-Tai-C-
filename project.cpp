@@ -1,3 +1,6 @@
+#include <fstream>
+#include <string>
+#include <sstream>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -13,7 +16,7 @@
 #include <set>
 #include <limits>
 #include <cmath>
-#include "mylib.h"
+
 using namespace std;
 const int MAX_DAUSACH = 10000;
 
@@ -101,7 +104,6 @@ TreeDocGia taothedocgia (){ // tạo cây
     TheDocGia a ;
     string s;
     string stwo;
-    stringstream ss(s);
     srand(time(0));
     a.MATHE = 1000 + rand() % (10000 - 1000);
     cout << "HO: "; cin.ignore();
@@ -180,17 +182,15 @@ void incay(TreeDocGia a){ // in cây
     }
     incay(a->right);
 };
-void khoathe(TreeDocGia & a,int x){ // khóa thẻ
-    if(a==NULL){
-        return;
-    }
-    if ( a->dg.MATHE == x){
-        a->dg.trangthai = 0;
-        cout << "da khoa the"<<endl;
-    }
-    khoathe(a->left,x);
-    khoathe(a->right,x);
-};
+bool CheckMaThe(TreeDocGia t, int ma) {
+    if (t == NULL) return false;
+    if (t->dg.MATHE == ma) return true;
+    
+    if (ma < t->dg.MATHE) 
+        return CheckMaThe(t->left, ma);
+    else 
+        return CheckMaThe(t->right, ma);
+}
 void xoanode2la(TreeDocGia& a,TreeDocGia &p){
     if(a->left!=NULL){
         xoanode2la(a->left,p);
@@ -203,38 +203,41 @@ void xoanode2la(TreeDocGia& a,TreeDocGia &p){
 };
 void xoathe(TreeDocGia& a, int x ){   // xóa thẻ trong cây
         if(a==NULL){
-        return;
+        return ;
     }
-        xoathe(a->left,x); 
-        if(a->dg.MATHE== x){ 
+        if (x < a->dg.MATHE) {
+        return xoathe(a->left, x);
+    }
+    else if (x > a->dg.MATHE) {
+        return xoathe(a->right, x);
+    }
+       else{ 
         if(a->left == NULL){
             TreeDocGia p = a;
             a = a->right;
             delete p;
-            cout <<"da xoa the"<<endl;
+            return ;
 
         }
         else if(a->right == NULL){
             TreeDocGia p = a;
             a = a->left;
             delete p;
-            cout <<"da xoa the"<<endl;
+            return ;
         }
         else if(a->right == NULL&& a->left == NULL){
             delete a;
             a = nullptr;
-            cout <<"da xoa the"<<endl;
+            return ;
            }
         else {
             TreeDocGia p = a;
             xoanode2la(a->right,p);
             delete p;
-            cout <<"da xoa the"<<endl;
+            return ;
         }
-        return;
     }
-        xoathe(a->right,x);
-};
+}
  void dieuchinhmathe(TreeDocGia& a , TheDocGia &tmp){ // điều chỉnh thẻ
     if(a==NULL){
         return ;
@@ -398,7 +401,6 @@ void trasach(TreeDocGia& a,DS_DauSach & b, int x,string s, string t){
             if (temp->mt.MASACH == s){
                 temp->mt.trangthai2 = 1 ;
                 temp->mt.NgayTra = to_string(TIME.day)+"/"+to_string(TIME.month)+"/"+to_string(TIME.year);
-                cout <<"Da Tra Sach"<<endl;
                 return;
             }
             temp = temp->next;
@@ -437,7 +439,7 @@ void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
         }
     }
     for(int i = 0 ; i < cnt; ++i){
-        cout << tmp[i].TENSACH<<" "<<tmp[i].slm<<endl;
+        // thieu in
     }
 };
 void luudsquahan(TreeDocGia & a , DS_TheDocgia & b){
@@ -1035,23 +1037,23 @@ void Tim_Sach_Ten(DS_DauSach &ds_dausach){
     }
 }
 // int main() {
-//     DS_DauSach dsdausach = new DS_DAUSACH();
-//     TreeDocGia dsdocgia = NULL;
-//     TreeDocGia dshoten = NULL;
-//     DS_TheDocgia quahan;
-//     ifstream Fout("D:/code/thedocgiadata.txt");
-//         // if(!Fout){
-//         //  cout << "No"<<endl;
-//         //     }
-//         loadfiledocgia(dsdocgia,dshoten,Fout);
-//         Fout.close();
-//     ifstream FoutSach("D:/code/danhmucsachdata.txt");
-//     // if(!FoutSach){
-//     //     cout << "Khong the mo file" << endl;
-//     // }
-//     loadfilesach(dsdausach, FoutSach);
-//     FoutSach.close();
+    // DS_DauSach dsdausach = new DS_DAUSACH();
+    // TreeDocGia dsdocgia = NULL;
+    // TreeDocGia dshoten = NULL;
+    // DS_TheDocgia quahan;
+    // ifstream Fout("D:/code/thedocgiadata.txt");
+    //     // if(!Fout){
+    //     //  cout << "No"<<endl;
+    //     //     }
+    //     loadfiledocgia(dsdocgia,dshoten,Fout);
+    //     Fout.close();
+    // ifstream FoutSach("D:/code/danhmucsachdata.txt");
+    // // if(!FoutSach){
+    // //     cout << "Khong the mo file" << endl;
+    // // }
+    // loadfilesach(dsdausach, FoutSach);
+    // FoutSach.close();
     
-//     delete dsdausach;
-//     return 0;
+    // delete dsdausach;
+    
 // }
