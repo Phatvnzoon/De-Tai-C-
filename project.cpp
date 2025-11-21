@@ -250,29 +250,39 @@ void xoathe(TreeDocGia& a, int x ){   // xóa thẻ trong cây
     }
     dieuchinhmathe(a->right,tmp);
 };
-void indsmuontra(MT  a){   // in ds mượn trả đang mượn
-    MT p = a;
-    while(p != NULL){
-        if(p->mt.trangthai2==0){
-        cout << p->mt.MASACH <<" "<<p->mt.TENSACH<<" "<< p->mt.NgayMuon<<" "<<p->mt.NgayTra<<" "<<p->mt.trangthai2<<endl;
-        }
-        p = p->next;
-    }
-};
-void checkdsmuonsach(TreeDocGia  a, int x ){  // in danh sách mượn trả
-    if(a == NULL){
+void khoathe(TreeDocGia & a,int x){ // khóa thẻ
+    if(a==NULL){
         return;
     }
-    else if(a->dg.MATHE > x){
-        checkdsmuonsach(a->left,x);
+    if ( a->dg.MATHE == x){
+        a->dg.trangthai = 0;
     }
-    else if(a->dg.MATHE < x){
-        checkdsmuonsach(a->right,x);
-    }
-    else{
-        indsmuontra(a->dg.dsmuontra);
-    }   
+    khoathe(a->left,x);
+    khoathe(a->right,x);
 };
+// void indsmuontra(MT  a){   // in ds mượn trả đang mượn
+//     MT p = a;
+//     while(p != NULL){
+//         if(p->mt.trangthai2==0){
+//         cout << p->mt.MASACH <<" "<<p->mt.TENSACH<<" "<< p->mt.NgayMuon<<" "<<p->mt.NgayTra<<" "<<p->mt.trangthai2<<endl;
+//         }
+//         p = p->next;
+//     }
+// };
+// void checkdsmuonsach(TreeDocGia  a, int x ){  // in danh sách mượn trả
+//     if(a == NULL){
+//         return;
+//     }
+//     else if(a->dg.MATHE > x){
+//         checkdsmuonsach(a->left,x);
+//     }
+//     else if(a->dg.MATHE < x){
+//         checkdsmuonsach(a->right,x);
+//     }
+//     else{
+//         indsmuontra(a->dg.dsmuontra);
+//     }   
+// };
 void changebook(DS_DauSach & a,const string s,const string t,int x){
     for(int i = 0 ; i < a->n;++i){
         if(a->nodes[i]->TENSACH == t){
