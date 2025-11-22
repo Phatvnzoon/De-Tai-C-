@@ -171,15 +171,13 @@ void NhapISBN(const string& prompt, string &result) {
 
 void stringdg(const string& s,string &end){
     if(s.empty()){
-        cout <<"vui long nhap ten"<<endl;
         return;
     }
-    for(char x : s){
+    for(unsigned char x : s){
         if(isspace(x)){
             continue;
         }
-        if(!isalpha(x)){
-            cout<<"vui long chi nhap tu"<<endl;
+        if(x<128 &&!isalpha(x)){
             return;
         }
         }
