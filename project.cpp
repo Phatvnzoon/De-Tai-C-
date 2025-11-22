@@ -574,14 +574,14 @@ void savefilesach(DS_DauSach &ds_dausach, ofstream &f){
 }
 void loadfilesach(DS_DauSach &ds_dausach, ifstream &f){
     string line;
-    getline(f,line); // Doc so luong dau sach
+    getline(f,line); 
     ds_dausach->n = stoi(line);
-    getline(f,line); // Doc "********"
+    getline(f,line); 
 
     for(int i = 0; i < ds_dausach->n; i++) {
         ds_dausach->nodes[i] = new DauSach();
         
-        // Doc thong tin dau sach
+        
         getline(f, line);
         stringstream ss(line);
         string value;
@@ -601,7 +601,7 @@ void loadfilesach(DS_DauSach &ds_dausach, ifstream &f){
         SACH tail = NULL;
         for (int j=0; j<ds_dausach->nodes[i]->slsach; j++){
             if (!getline(f, line) || line == "------------") {
-                cout << "Loi: File data bi hong, thieu thong tin sach con." << endl;
+                //cout << "Loi: File data bi hong, thieu thong tin sach con." << endl;
                 break; 
             } 
             stringstream ss_sach(line);
@@ -625,7 +625,7 @@ void loadfilesach(DS_DauSach &ds_dausach, ifstream &f){
                 ds_dausach->nodes[i]->slm = stoi(line);
             } catch (...) {
                 // Truong hop dong do bi loi hoac la "------------"
-                cout << "Loi: Khong doc duoc SLM cho ISBN " << ds_dausach->nodes[i]->ISBN << endl;
+                //cout << "Loi: Khong doc duoc SLM cho ISBN " << ds_dausach->nodes[i]->ISBN << endl;
                 ds_dausach->nodes[i]->slm = 0;
                 if (line != "------------") {
                    getline(f, line); // Doc va bo qua dong "------------"
@@ -671,9 +671,7 @@ bool MaSachTrung(DauSach *ds, string &Ma){
     }
     return false;
 }
-void sapxepdausach(DS_DauSach &ds_dausach){
 
-}
 //Nhập đầu sách
 void NhapDauSach(DS_DauSach &ds_dausach){
     if (ds_dausach->n >= MAX_DAUSACH){
