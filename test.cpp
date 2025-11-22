@@ -71,6 +71,183 @@ public:
         }
     }
 };
+// Hàm chuyển đổi ký tự Unicode (từ bàn phím) sang chuỗi UTF-8 để lưu vào std::string
+string UnicodeToUTF8(uint32_t codepoint) {
+    string out;
+    if (codepoint <= 0x7f)
+        out.append(1, static_cast<char>(codepoint));
+    else if (codepoint <= 0x7ff) {
+        out.append(1, static_cast<char>(0xc0 | ((codepoint >> 6) & 0x1f)));
+        out.append(1, static_cast<char>(0x80 | (codepoint & 0x3f)));
+    }
+    else if (codepoint <= 0xffff) {
+        out.append(1, static_cast<char>(0xe0 | ((codepoint >> 12) & 0x0f)));
+        out.append(1, static_cast<char>(0x80 | ((codepoint >> 6) & 0x3f)));
+        out.append(1, static_cast<char>(0x80 | (codepoint & 0x3f)));
+    }
+    return out;
+}
+// ============================================================
+// CLASS TABLE DISPLAY (GIAO DIỆN MỚI - DARK MODE & ZEBRA)
+// ============================================================
+class TableDisplay {
+private:
+    Font font;
+    vector<vector<string>> data; // Dữ liệu bảng
+    vector<string> headers;      // Tiêu đề cột
+    vector<int> columnWidths;    // Độ rộng cột
+    float startX, startY;
+    float lineHeight;            // Chiều cao mỗi dòng
+    float charWidthFactor;       // Hệ số quy đổi độ rộng
+    int currentPage;
+    int rowsPerPage;
+
+public:
+    TableDisplay(float x, float y, int rowsPerPage, string fontPath)
+        : startX(x), startY(y), rowsPerPage(rowsPerPage), 
+          lineHeight(40.0f),     // Tăng chiều cao dòng cho thoáng (40px)
+          charWidthFactor(12.0f), // Hệ số ước lượng độ rộng chữ
+          currentPage(0)
+    {
+        if (!font.openFromFile(fontPath)) {
+            cout << "LOI: Khong tim thay file font!" << endl;
+        }
+    }
+
+    void setHeaders(vector<string> h, vector<int> widths) {
+        headers = h;
+        columnWidths = widths;
+    }
+
+    void addRow(vector<string> row) {
+        data.push_back(row);
+    }
+
+    void clear() {
+        data.clear();
+        currentPage = 0;
+    }
+
+    // Hàm vẽ hình chữ nhật nền
+    void drawRect(RenderWindow &window, float x, float y, float w, float h, Color color) {
+        RectangleShape rect(Vector2f(w, h));
+        rect.setPosition(Vector2f(x, y));
+        rect.setFillColor(color);
+        window.draw(rect);
+    }
+
+    // Cắt chuỗi nếu quá dài
+    string formatString(string str, int maxChar) {
+        if (str.length() > maxChar) {
+            return str.substr(0, maxChar - 2) + "..";
+        }
+        return str;
+    }
+
+    void draw(RenderWindow &window) {
+        if (headers.empty()) return;
+
+        // Tính tổng chiều rộng bảng
+        float totalWidth = 0;
+        for (int w : columnWidths) totalWidth += w * charWidthFactor;
+
+        float currentY = startY;
+
+        // --- 1. VẼ HEADER (Tiêu đề) ---
+        // Vẽ nền Header màu xám đậm
+        drawRect(window, startX, currentY, totalWidth, lineHeight, Color(50, 50, 60)); 
+
+        Text textObj(font);
+        textObj.setCharacterSize(18);
+        
+        float currentX = startX;
+        for (int i = 0; i < headers.size(); i++) {
+            float colW = columnWidths[i] * charWidthFactor;
+            
+            textObj.setString(sf::String::fromUtf8(headers[i].begin(), headers[i].end()));
+            textObj.setFillColor(Color(255, 215, 0)); // Màu Vàng Gold
+            textObj.setStyle(Text::Bold);
+            
+            // Căn giữa tiêu đề
+            FloatRect textRect = textObj.getLocalBounds();
+            textObj.setPosition(Vector2f(currentX + (colW - textRect.size.x) / 2.0f, currentY + 8.f));
+            window.draw(textObj);
+            
+            // Đường kẻ dọc ngăn cách header
+            RectangleShape line(Vector2f(1.f, lineHeight));
+            line.setFillColor(Color(100, 100, 100));
+            line.setPosition(Vector2f(currentX + colW, currentY));
+            window.draw(line);
+
+            currentX += colW;
+        }
+
+        currentY += lineHeight; // Xuống dòng để vẽ dữ liệu
+
+        // --- 2. VẼ DỮ LIỆU ---
+        int startRow = currentPage * rowsPerPage;
+        int endRow = min(startRow + rowsPerPage, (int)data.size());
+
+        for (int i = startRow; i < endRow; i++) {
+            currentX = startX;
+            
+            // Hiệu ứng Zebra (Dòng chẵn lẻ màu khác nhau)
+            if (i % 2 == 0) {
+                drawRect(window, startX, currentY, totalWidth, lineHeight, Color(40, 40, 45)); // Xám nhẹ
+            } else {
+                drawRect(window, startX, currentY, totalWidth, lineHeight, Color(30, 30, 35)); // Tối hơn
+            }
+
+            for (int j = 0; j < data[i].size() && j < columnWidths.size(); j++) {
+                float colW = columnWidths[j] * charWidthFactor;
+                
+                // Nội dung ô
+                string content = formatString(data[i][j], columnWidths[j]);
+                textObj.setString(sf::String::fromUtf8(content.begin(), content.end()));
+                textObj.setFillColor(Color::White);
+                textObj.setStyle(Text::Regular);
+                textObj.setPosition(Vector2f(currentX + 10.f, currentY + 8.f)); // Padding left 10px
+                window.draw(textObj);
+
+                // Đường kẻ dọc mờ giữa các cột
+                RectangleShape vLine(Vector2f(1.f, lineHeight));
+                vLine.setFillColor(Color(60, 60, 60));
+                vLine.setPosition(Vector2f(currentX + colW, currentY));
+                window.draw(vLine);
+
+                currentX += colW;
+            }
+            currentY += lineHeight;
+        }
+
+        // --- 3. VẼ VIỀN BAO QUANH ---
+        RectangleShape border(Vector2f(totalWidth, currentY - startY));
+        border.setPosition(Vector2f(startX, startY));
+        border.setFillColor(Color::Transparent);
+        border.setOutlineThickness(1.f);
+        border.setOutlineColor(Color(100, 100, 100));
+        window.draw(border);
+
+        // --- 4. THÔNG TIN TRANG (Footer) ---
+        int totalPages = (data.size() == 0) ? 1 : (data.size() + rowsPerPage - 1) / rowsPerPage;
+        Text pageInfo(font);
+        pageInfo.setString("Trang " + to_string(currentPage + 1) + " / " + to_string(totalPages) +
+                          "  |  Tong so dong: " + to_string(data.size()));
+        pageInfo.setCharacterSize(16);
+        pageInfo.setFillColor(Color(0, 255, 255)); // Màu Cyan
+        pageInfo.setPosition(Vector2f(startX, currentY + 10));
+        window.draw(pageInfo);
+    }
+    
+    void nextPage() {
+        int maxPage = (data.size() == 0) ? 0 : (data.size() - 1) / rowsPerPage;
+        if (currentPage < maxPage) currentPage++;
+    }
+    
+    void prevPage() {
+        if (currentPage > 0) currentPage--;
+    }
+};
 // InputField.h hoặc để đầu file main
 class InputField {
 public:
@@ -97,7 +274,7 @@ public:
         text.setPosition({x + 5.f, y + 5.f});
 
         // Setup Nhãn (Label) - Đây là phần mới thêm vào
-        label.setString(labelStr);
+        label.setString(sf::String::fromUtf8(labelStr.begin(), labelStr.end()));
         label.setCharacterSize(18);
         label.setFillColor(Color::White);
         label.setPosition({x, y - 25.f}); // Nằm phía trên ô nhập
@@ -123,13 +300,25 @@ public:
         // 2. Xử lý Nhập phím
         if (isFocus) {
             if (const auto* textEvent = event.getIf<Event::TextEntered>()) {
-                if (textEvent->unicode == 8) { // Backspace
-                    if (!content.empty()) content.pop_back();
+                if (textEvent->unicode == 8) { // Backspace (Xóa)
+                    if (!content.empty()) {
+                        // Xử lý xóa ký tự UTF-8 (vì 1 ký tự TV có thể là 2-3 byte)
+                        while (!content.empty()) {
+                            char c = content.back();
+                            content.pop_back();
+                            // Nếu byte đầu tiên ko phải là byte tiếp theo (10xxxxxx) thì dừng
+                            if ((c & 0xC0) != 0x80) break; 
+                        }
+                    }
                 } 
-                else if (textEvent->unicode < 128 && textEvent->unicode > 31) {
-                    content += static_cast<char>(textEvent->unicode);
+                // SỬA ĐOẠN NÀY: Chấp nhận cả tiếng Việt (Unicode > 31)
+                else if (textEvent->unicode > 31) {
+                    // Gọi hàm chuyển đổi đã viết ở Bước 2
+                    content += UnicodeToUTF8(textEvent->unicode);
                 }
-                text.setString(content);
+                
+                // SFML hỗ trợ hiển thị UTF-8 trực tiếp từ std::string
+                text.setString(sf::String::fromUtf8(content.begin(), content.end()));
             }
         }
     }
@@ -145,6 +334,62 @@ public:
         text.setString("");
     }
 };
+class Button {
+public:
+    RectangleShape shape;
+    Text text;
+    Color colorIdle;  // Màu bình thường
+    Color colorHover; // Màu khi chuột chỉ vào
+
+    // Constructor
+    Button(float x, float y, float w, float h, string t, const Font& font, Color btnColor) 
+        : text(font) // SFML 3.0: Gắn font ngay
+    {
+        // 1. Setup hình dáng nút
+        shape.setPosition({x, y});
+        shape.setSize({w, h});
+        
+        colorIdle = btnColor;
+        colorHover = Color(btnColor.r + 50, btnColor.g + 50, btnColor.b + 50); // Làm sáng màu lên tí
+        
+        shape.setFillColor(colorIdle);
+        shape.setOutlineThickness(2);
+        shape.setOutlineColor(Color::White);
+
+        // 2. Setup chữ
+        text.setString(sf::String::fromUtf8(t.begin(), t.end()));
+        text.setCharacterSize(20);
+        text.setFillColor(Color::White);
+
+        // 3. Căn giữa chữ vào nút (Công thức chuẩn SFML 3.0)
+        FloatRect textRect = text.getLocalBounds();
+        text.setOrigin({textRect.size.x / 2.0f, textRect.size.y / 2.0f});
+        text.setPosition({
+            x + w / 2.0f,
+            y + h / 2.0f - 5.f // Trừ 5f để bù chiều cao font
+        });
+    }
+
+    // Hàm kiểm tra chuột có đang click vào nút không
+    bool isClicked(Vector2f mousePos) {
+        return shape.getGlobalBounds().contains(mousePos);
+    }
+
+    // Hàm cập nhật hiệu ứng (đổi màu khi di chuột)
+    void update(Vector2f mousePos) {
+        if (shape.getGlobalBounds().contains(mousePos)) {
+            shape.setFillColor(colorHover); // Sáng lên
+        } else {
+            shape.setFillColor(colorIdle);  // Bình thường
+        }
+    }
+
+    void draw(RenderWindow& window) {
+        window.draw(shape);
+        window.draw(text);
+    }
+};
+
 TreeDocGia FormTaoDocGia(const Font &font) {
     RenderWindow popup(VideoMode({400, 550}), "Them Doc Gia", Style::Titlebar | Style::Close);
     popup.setFramerateLimit(60);
@@ -224,7 +469,7 @@ TreeDocGia FormTaoDocGia(const Font &font) {
                         if (a.HO.empty() || a.TEN.empty()) {
         
         
-        txtError.setString("LOI: Ten khong hop le ( so hoac de trong)!");
+        txtError.setString("LOI: Ten khong hop le (so hoac de trong)!");
         
         // Reset ô nhập để bắt nhập lại
         inputHo.clear();
@@ -390,61 +635,7 @@ int FormNhapMaXoa(const Font &font,TreeDocGia a,string tieuDe) {
     }
     return -1;
 }
-class Button {
-public:
-    RectangleShape shape;
-    Text text;
-    Color colorIdle;  // Màu bình thường
-    Color colorHover; // Màu khi chuột chỉ vào
 
-    // Constructor
-    Button(float x, float y, float w, float h, string t, const Font& font, Color btnColor) 
-        : text(font) // SFML 3.0: Gắn font ngay
-    {
-        // 1. Setup hình dáng nút
-        shape.setPosition({x, y});
-        shape.setSize({w, h});
-        
-        colorIdle = btnColor;
-        colorHover = Color(btnColor.r + 50, btnColor.g + 50, btnColor.b + 50); // Làm sáng màu lên tí
-        
-        shape.setFillColor(colorIdle);
-        shape.setOutlineThickness(2);
-        shape.setOutlineColor(Color::White);
-
-        // 2. Setup chữ
-        text.setString(t);
-        text.setCharacterSize(20);
-        text.setFillColor(Color::White);
-
-        // 3. Căn giữa chữ vào nút (Công thức chuẩn SFML 3.0)
-        FloatRect textRect = text.getLocalBounds();
-        text.setOrigin({textRect.size.x / 2.0f, textRect.size.y / 2.0f});
-        text.setPosition({
-            x + w / 2.0f,
-            y + h / 2.0f - 5.f // Trừ 5f để bù chiều cao font
-        });
-    }
-
-    // Hàm kiểm tra chuột có đang click vào nút không
-    bool isClicked(Vector2f mousePos) {
-        return shape.getGlobalBounds().contains(mousePos);
-    }
-
-    // Hàm cập nhật hiệu ứng (đổi màu khi di chuột)
-    void update(Vector2f mousePos) {
-        if (shape.getGlobalBounds().contains(mousePos)) {
-            shape.setFillColor(colorHover); // Sáng lên
-        } else {
-            shape.setFillColor(colorIdle);  // Bình thường
-        }
-    }
-
-    void draw(RenderWindow& window) {
-        window.draw(shape);
-        window.draw(text);
-    }
-};
 bool FormSuaDocGia(const Font &font, TheDocGia &data) {
     float winW = 400.f; float winH = 450.f;
     RenderWindow popup(VideoMode({(unsigned int)winW, (unsigned int)winH}), "Hieu Chinh Doc Gia", Style::Titlebar | Style::Close);
@@ -664,173 +855,765 @@ void checkdsmuonsach(TreeDocGia a, int x, INFORBORAD &board) {
         indsmuontra(a->dg.dsmuontra, board);
     }   
 }
-int main(){
+// Hàm hiển thị popup nhập một chuỗi (Dùng để nhập ISBN khi xóa hoặc tìm)
+string FormNhapChuoi(const Font &font, string title, string label) {
+    RenderWindow popup(VideoMode({400, 250}), "Nhap Lieu", Style::Titlebar | Style::Close);
+    popup.setFramerateLimit(60);
+
+    InputField input(50.f, 80.f, 300.f, 35.f, label, font);
+    
+    RectangleShape btnOk({120.f, 40.f});
+    btnOk.setPosition({140.f, 160.f});
+    btnOk.setFillColor(Color(0, 120, 215));
+    
+    Text txtBtn(font); 
+    string txtBtnStr = "XÁC NHẬN";
+    txtBtn.setString(sf::String::fromUtf8(txtBtnStr.begin(), txtBtnStr.end()));
+    txtBtn.setCharacterSize(18);
+    txtBtn.setPosition({155.f, 168.f});
+
+    while (popup.isOpen()) {
+        while (const optional event = popup.pollEvent()) {
+            if (event->is<Event::Closed>()) { popup.close(); return ""; }
+            if (const auto* key = event->getIf<Event::KeyPressed>()) {
+                if (key->code == Keyboard::Key::Escape) { popup.close(); return ""; }
+            }
+
+            input.handleEvent(*event, popup);
+
+            if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
+                if (mouseBtn->button == Mouse::Button::Left) {
+                    if (btnOk.getGlobalBounds().contains(Vector2f(mouseBtn->position.x, mouseBtn->position.y))) {
+                        if (!input.content.empty()) {
+                            popup.close();
+                            return input.content;
+                        }
+                    }
+                }
+            }
+        }
+        popup.clear(Color(40, 40, 40));
+        Text tTitle(font);
+        tTitle.setString(sf::String::fromUtf8(title.begin(), title.end()));
+        tTitle.setPosition(Vector2f(10.f, 10.f));
+        tTitle.setCharacterSize(20);
+        popup.draw(tTitle);
+        input.draw(popup);
+        popup.draw(btnOk); popup.draw(txtBtn);
+        popup.display();
+    }
+    return "";
+}
+// Trả về con trỏ DauSach mới nếu thêm thành công, hoặc NULL nếu hủy
+// Nếu modeEdit = true, data sẽ là dữ liệu cũ để fill vào ô
+DauSach* FormNhapSach(const Font &font, bool modeEdit, DauSach* dataEdit = NULL) {
+    RenderWindow popup(VideoMode({500, 700}), modeEdit ? "Hieu Chinh Sach" : "Them Dau Sach", Style::Titlebar | Style::Close);
+    popup.setFramerateLimit(60);
+
+    // Tạo các ô input
+    InputField inpISBN(50, 50, 400, 30, "ISBN (Toi da 13 ky tu):", font);
+    InputField inpTen(50, 130, 400, 30, "TEN SACH:", font);
+    InputField inpTrang(50, 210, 150, 30, "SO TRANG:", font);
+    InputField inpNam(250, 210, 200, 30, "NAM XB:", font);
+    InputField inpTacGia(50, 290, 400, 30, "TAC GIA:", font);
+    InputField inpTheLoai(50, 370, 400, 30, "THE LOAI:", font);
+    
+    // Chỉ dùng cho mode Thêm mới (để tạo tự động các bản sao)
+    InputField inpSoLuong(50, 450, 150, 30, "SO LUONG SACH:", font); 
+
+    Text txtErr(font); txtErr.setFillColor(Color::Red); txtErr.setCharacterSize(16); txtErr.setPosition(Vector2f(50.f, 600.f));
+
+    // Nút Lưu
+    RectangleShape btnSave(Vector2f(140.f, 45.f)); btnSave.setPosition(Vector2f(180.f, 530.f)); btnSave.setFillColor(Color::Blue);
+    Text txtSave(font); txtSave.setString("LUU"); txtSave.setPosition(Vector2f(210.f, 540.f)); txtSave.setCharacterSize(20);
+
+    // Nếu là EDIT, điền dữ liệu cũ vào
+    if (modeEdit && dataEdit != NULL) {
+        inpISBN.content = dataEdit->ISBN; inpISBN.text.setString(dataEdit->ISBN);
+        inpTen.content = dataEdit->TENSACH; inpTen.text.setString(dataEdit->TENSACH);
+        inpTrang.content = to_string(dataEdit->SOTRANG); inpTrang.text.setString(to_string(dataEdit->SOTRANG));
+        inpNam.content = to_string(dataEdit->NAMXUATBAN); inpNam.text.setString(to_string(dataEdit->NAMXUATBAN));
+        inpTacGia.content = dataEdit->TACGIA; inpTacGia.text.setString(dataEdit->TACGIA);
+        inpTheLoai.content = dataEdit->THELOAI; inpTheLoai.text.setString(dataEdit->THELOAI);
+        
+        // Không cho sửa ISBN và Số lượng khi Edit
+        // (Logic: input ISBN sẽ không nhận event click để focus)
+    }
+
+    while (popup.isOpen()) {
+        while (const optional event = popup.pollEvent()) {
+            if (event->is<Event::Closed>()) { popup.close(); return NULL; }
+            if (const auto* key = event->getIf<Event::KeyPressed>()) {
+                if (key->code == Keyboard::Key::Escape) { popup.close(); return NULL; }
+            }
+
+            // Xử lý input
+            if (!modeEdit) inpISBN.handleEvent(*event, popup); // Chỉ cho sửa ISBN khi thêm mới
+            inpTen.handleEvent(*event, popup);
+            inpTrang.handleEvent(*event, popup);
+            inpNam.handleEvent(*event, popup);
+            inpTacGia.handleEvent(*event, popup);
+            inpTheLoai.handleEvent(*event, popup);
+            if (!modeEdit) inpSoLuong.handleEvent(*event, popup);
+
+            if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
+                if (mouseBtn->button == Mouse::Button::Left) {
+                     Vector2f mousePos(static_cast<float>(mouseBtn->position.x), static_cast<float>(mouseBtn->position.y));
+                    
+                    if (btnSave.getGlobalBounds().contains(mousePos)) {
+                        // Validate
+                        if (inpISBN.content.empty() || inpTen.content.empty()) {
+                            txtErr.setString("Loi: ISBN va Ten khong duoc de trong!"); continue;
+                        }
+                        
+                        DauSach* result = new DauSach();
+                        result->ISBN = inpISBN.content;
+                        stringdg(inpTen.content, result->TENSACH);
+                        stringdg(inpTacGia.content, result->TACGIA);
+                        stringdg(inpTheLoai.content, result->THELOAI);
+                        
+                        try {
+                            result->SOTRANG = stoi(inpTrang.content);
+                            result->NAMXUATBAN = stoi(inpNam.content);
+                            if (!modeEdit) result->slsach = stoi(inpSoLuong.content);
+                            else result->slsach = dataEdit->slsach; // Giữ nguyên số lượng cũ
+                        } catch (...) {
+                            txtErr.setString("Loi: So trang, Nam, So luong phai la so!");
+                            delete result; continue;
+                        }
+
+                        popup.close();
+                        return result;
+                    }
+                }
+            }
+        }
+
+        popup.clear(Color(30, 30, 35));
+        inpISBN.draw(popup); inpTen.draw(popup); inpTrang.draw(popup);
+        inpNam.draw(popup); inpTacGia.draw(popup); inpTheLoai.draw(popup);
+        if (!modeEdit) inpSoLuong.draw(popup); // Chỉ hiện ô số lượng khi thêm mới
+
+        popup.draw(btnSave); popup.draw(txtSave); popup.draw(txtErr);
+        popup.display();
+    }
+    return NULL;
+}
+// --- LOGIC WRAPPER CHO SFML ---
+
+// 1. Thêm đầu sách vào mảng và tự tạo các bản sao sách con
+void FormThemDauSach(DS_DauSach &ds, DauSach* p) {
+    if (ds->n >= MAX_DAUSACH) return;
+    
+    // Check trùng ISBN
+    for (int i=0; i<ds->n; i++) {
+        if (ds->nodes[i]->ISBN == p->ISBN) {
+            cout << "Loi: Trung ISBN!" << endl; // Có thể hiện thông báo GUI
+            return;
+        }
+    }
+
+    // Tạo tự động các sách con (Mã sách)
+    // Logic lấy từ project.cpp
+    for (int i = 0; i < p->slsach; i++) {
+        SACH newSach = new nodeSach();
+        newSach->next = NULL;
+        
+        string MaSach;
+        do {
+            MaSach = randomMaSach(p->ISBN);
+        } while(MaSachTrung(p, MaSach)); // Kiểm tra trong list con của nó
+        
+        newSach->data.MASACH = MaSach;
+        newSach->data.trangthai = 0; 
+        newSach->data.vitri = "Ke chinh"; // Mặc định (có thể làm form chọn nếu muốn)
+        
+        // Insert Head
+        newSach->next = p->dms;
+        p->dms = newSach;
+    }
+
+    // Chèn vào danh sách tuyến tính (có sắp xếp theo Tên)
+    int pos = ds->n;
+    for (int i = 0; i < ds->n; i++) {
+        if (p->TENSACH < ds->nodes[i]->TENSACH) {
+            pos = i;
+            break;
+        }
+    }
+    for (int i = ds->n; i > pos; i--) {
+        ds->nodes[i] = ds->nodes[i-1];
+    }
+    ds->nodes[pos] = p;
+    ds->n++;
+}
+
+// 2. Xóa đầu sách
+void FormXoaDauSach(DS_DauSach &ds, string isbn) {
+    int pos = -1;
+    for(int i=0; i<ds->n; i++) if(ds->nodes[i]->ISBN == isbn) { pos = i; break; }
+    
+    if (pos == -1) return; // Khong tim thay
+    
+    // Check xem có sách đang mượn không
+    SACH p = ds->nodes[pos]->dms;
+    while(p) {
+        if (p->data.trangthai == 1) return; // Đang có người mượn -> Cấm xóa
+        p = p->next;
+    }
+
+    // Xóa bộ nhớ các sách con
+    SACH temp = ds->nodes[pos]->dms;
+    while(temp) {
+        SACH del = temp;
+        temp = temp->next;
+        delete del;
+    }
+    delete ds->nodes[pos];
+
+    // Dồn mảng
+    for(int i=pos; i<ds->n-1; i++) ds->nodes[i] = ds->nodes[i+1];
+    ds->n--;
+}
+
+// 3. Thêm bản sao (Thêm 1 cuốn vào đầu sách đã có)
+void FormThemBanSao(DS_DauSach &ds, string isbn, int soLuongThem) {
+    int pos = -1;
+    for(int i=0; i<ds->n; i++) if(ds->nodes[i]->ISBN == isbn) { pos = i; break; }
+    if (pos == -1) return;
+
+    DauSach* book = ds->nodes[pos];
+    
+    for(int k=0; k<soLuongThem; k++) {
+        SACH newSach = new nodeSach();
+        string ms;
+        do { ms = randomMaSach(book->ISBN); } while(MaSachTrung(book, ms));
+        
+        newSach->data.MASACH = ms;
+        newSach->data.trangthai = 0;
+        newSach->data.vitri = "Ke kho";
+        
+        newSach->next = book->dms;
+        book->dms = newSach;
+        book->slsach++;
+    }
+}
+
+void inDauSach(DS_DauSach &ds, INFORBORAD &board) {
+    if (ds == NULL || ds->n == 0) {
+        board.print("Khong co dau sach nao!");
+        return;
+    }
+    
+    for (int i = 0; i < ds->n; i++) {
+        string info = ds->nodes[i]->ISBN + " | " + 
+                      ds->nodes[i]->TENSACH + " | " + 
+                      to_string(ds->nodes[i]->SOTRANG) + " | " + 
+                      ds->nodes[i]->TACGIA + " | " + 
+                      to_string(ds->nodes[i]->NAMXUATBAN) + " | " + 
+                      ds->nodes[i]->THELOAI + " | " + 
+                      to_string(ds->nodes[i]->slsach);
+        board.print(info);
+    }
+}
+void loadDauSachToTable(DS_DauSach &ds, TableDisplay &table) {
+    table.clear();
+    if (ds == NULL || ds->n == 0) return;
+    
+    for (int i = 0; i < ds->n; i++) {
+        vector<string> row;
+        row.push_back(to_string(i+1));
+        row.push_back(ds->nodes[i]->ISBN);
+        row.push_back(ds->nodes[i]->TENSACH);
+        row.push_back(to_string(ds->nodes[i]->SOTRANG));
+        row.push_back(ds->nodes[i]->TACGIA);
+        row.push_back(to_string(ds->nodes[i]->NAMXUATBAN));
+        row.push_back(ds->nodes[i]->THELOAI);
+        row.push_back(to_string(ds->nodes[i]->slsach));
+        table.addRow(row);
+    }
+}
+
+void loadDocGiaToTable(TreeDocGia root, TableDisplay &table, int &cnt) {
+    if (root == NULL) return;
+    
+    loadDocGiaToTable(root->left, table, cnt);
+    
+    vector<string> row;
+    row.push_back(to_string(++cnt));
+    row.push_back(to_string(root->dg.MATHE));
+    row.push_back(root->dg.HO + " " + root->dg.TEN);
+    row.push_back(string(root->dg.PHAI));
+    row.push_back((root->dg.trangthai == 1) ? "Hoat dong" : "Khoa");
+    row.push_back(to_string(root->dg.sachmuon));
+    table.addRow(row);
+    
+    loadDocGiaToTable(root->right, table, cnt);
+}
+void loadMuonTraToTable(MT head, TableDisplay &table) {
+    MT p = head;
+    bool coSach = false;
+    int stt = 1;
+    while(p != NULL) {
+        // Chỉ hiện sách CHƯA TRẢ (trangthai2 == 0: Đang mượn, 1: Đã trả, 2: Mất...)
+        // Tùy logic của bạn, ở đây tôi liệt kê sách đang mượn
+        if(p->mt.trangthai2 == 0) { 
+            vector<string> row;
+            row.push_back(to_string(stt++));
+            row.push_back(p->mt.MASACH);
+            row.push_back(p->mt.TENSACH);
+            row.push_back(p->mt.NgayMuon);
+            row.push_back(p->mt.NgayTra); // Hạn trả
+            row.push_back("Dang muon");
+            table.addRow(row);
+            coSach = true;
+        }
+        p = p->next;
+    }
+    if (!coSach) {
+        // Nếu không có sách, có thể thêm 1 dòng thông báo hoặc để trống
+    }
+}
+// Hàm hiển thị cửa sổ danh sách bản sao của 1 đầu sách
+void FormXemChiTietBanSao(DauSach* d, const Font &font) {
+    if (d == NULL) return;
+
+    // 1. Tạo cửa sổ Popup
+    RenderWindow popup(VideoMode({800, 600}), "Chi Tiet Ban Sao: " + d->ISBN, Style::Titlebar | Style::Close);
+    popup.setFramerateLimit(60);
+
+    // 2. Tạo bảng hiển thị
+    // Đường dẫn font bạn nhớ sửa lại nếu dùng font khác
+    TableDisplay table(30.f, 100.f, 10, "C:/Windows/Fonts/segoeui.ttf"); 
+
+    // Cấu hình cột cho bảng chi tiết
+    vector<string> headers = {"STT", "MÃ SÁCH", "TRẠNG THÁI", "VỊ TRÍ"};
+    vector<int> widths = {5, 20, 20, 20};
+    table.setHeaders(headers, widths);
+
+    // 3. Load dữ liệu từ danh sách liên kết (d->dms) vào bảng
+    SACH p = d->dms;
+    int stt = 0;
+    while (p != NULL) {
+        vector<string> row;
+        row.push_back(to_string(++stt));
+        row.push_back(p->data.MASACH);
+        
+        // Xử lý trạng thái ra chữ tiếng Việt
+        string tt;
+        if (p->data.trangthai == 0) tt = "Được mượn";
+        else if (p->data.trangthai == 1) tt = "Đã mượn";
+        else tt = "Đã thanh lý";
+        row.push_back(tt);
+
+        row.push_back(p->data.vitri);
+        
+        table.addRow(row);
+        p = p->next;
+    }
+
+    // Tiêu đề to ở trên
+    Text title(font);
+    title.setString(sf::String::fromUtf8(string("DANH SÁCH BẢN SAO: " + d->TENSACH).begin(), string("DANH SÁCH BẢN SAO: " + d->TENSACH).end()));
+    title.setCharacterSize(20);
+    title.setFillColor(Color::Yellow);
+    title.setPosition(Vector2f(30.f, 30.f));
+
+    // Vòng lặp cửa sổ popup
+    while (popup.isOpen()) {
+        while (const optional event = popup.pollEvent()) {
+            if (event->is<Event::Closed>()) popup.close();
+            
+            // Hỗ trợ cuộn chuột hoặc phím trang cho bảng popup
+            if (const auto* key = event->getIf<Event::KeyPressed>()) {
+                if (key->code == Keyboard::Key::Escape) popup.close();
+                if (key->code == Keyboard::Key::PageUp) table.prevPage();
+                if (key->code == Keyboard::Key::PageDown) table.nextPage();
+            }
+        }
+
+        popup.clear(Color(40, 40, 45)); // Màu nền tối
+        popup.draw(title);
+        table.draw(popup);
+        popup.display();
+    }
+}
+// Hàm tìm kiếm độc giả trong cây để lấy danh sách mượn
+void timVaLoadMuonTra(TreeDocGia t, int mathe, TableDisplay &table) {
+    if (t == NULL) return;
+    if (t->dg.MATHE == mathe) {
+        loadMuonTraToTable(t->dg.dsmuontra, table);
+    } else if (mathe < t->dg.MATHE) {
+        timVaLoadMuonTra(t->left, mathe, table);
+    } else {
+        timVaLoadMuonTra(t->right, mathe, table);
+    }
+}
+
+// ============================================================
+// HÀM MAIN - CHƯƠNG TRÌNH CHÍNH
+// ============================================================
+int main() {
+    // --- 1. KHỞI TẠO DỮ LIỆU ---
     DS_DauSach dsdausach = new DS_DAUSACH();
     TreeDocGia dsdocgia = NULL;
     TreeDocGia dshoten = NULL;
-    DS_TheDocgia quahan;
+
+    // Load dữ liệu từ file
     ifstream Fout("D:/code/thedocgiadata.txt");
-        loadfiledocgia(dsdocgia,dshoten,Fout);
+    if (Fout.is_open()) {
+        loadfiledocgia(dsdocgia, dshoten, Fout);
         Fout.close();
+    }
     ifstream FoutSach("D:/code/danhmucsachdata.txt");
-    FoutSach.close();
-    RenderWindow Window(VideoMode({800,600}),"Thu Vien");
-    INFORBORAD myConsole(30.f, 80.f, 20, "C:/Windows/Fonts/arial.ttf");
-    myConsole.clear();
+    if (FoutSach.is_open()) {
+        loadfilesach(dsdausach, FoutSach);
+        FoutSach.close();
+    }
+
+    // --- 2. KHỞI TẠO CỬA SỔ ---
+    float screenW = 1920.f;
+    float screenH = 1080.f;
+    RenderWindow Window(VideoMode({(unsigned int)screenW, (unsigned int)screenH}), "Thu Vien - Quan Ly (Full HD)");
+    Window.setFramerateLimit(60);
+
     Font font;
-    if (!font.openFromFile("C:/Windows/Fonts/arial.ttf")) {
-        cout << "Loi font!" << endl;
+    if (!font.openFromFile("C:/Windows/Fonts/segoeui.ttf")) {
+        cout << "LOI: Khong tim thay font segoeui.ttf" << endl;
         return -1;
     }
-    Button btnAdd(600.f, 150.f, 150.f, 50.f, "THEM MOI", font, Color(0, 150, 0));
-    Button btnDel(600.f, 220.f, 150.f, 50.f, "XOA THE", font, Color(0, 150, 0));
-    Button btnEdit(600.f, 290.f, 150.f, 50.f, "DIEU CHINH", font, Color(0, 150, 0));
-    Button btnlock(600.f, 360.f, 150.f, 50.f, "KHOA THE", font, Color(0, 150, 0));
-    CurrentTab currentTab = TAB_DOCGIA;
-    float tabW = 150.f; float tabH = 40.f;
-    Button btnTabSach(30.f, 10.f, tabW, tabH, "DAU SACH", font, Color(100, 100, 100));
-    Button btnTabDocGia(190.f, 10.f, tabW, tabH, "DOC GIA", font, Color(0, 100, 200)); // Màu xanh (Active)
-    Button btnTabMuon(350.f, 10.f, tabW, tabH, "DS MUON", font, Color(100, 100, 100));
-    float btnX = 620.f; float btnW = 150.f; float btnH = 50.f;
-    Button btnSach_Them(btnX, 80.f, btnW, btnH, "THEM SACH", font, Color(0, 150, 0));
-    Button btnSach_Xoa(btnX, 150.f, btnW, btnH, "XOA SACH", font, Color(0, 150, 0));
-    //
-    Button btnMuon_in(600.f, 150.f, 150.f, 50.f, "IN DS MUON", font, Color(0, 150, 0));
-    Button btnMuon_Tra(600.f, 220.f, 150.f, 50.f, "TRA SACH", font, Color(0, 150, 0));
-    auto RefreshList = [&]() {
-        myConsole.clear();   
-        btnTabSach.colorIdle = Color(100, 100, 100);
-        btnTabDocGia.colorIdle = Color(100, 100, 100);
-        btnTabMuon.colorIdle = Color(100, 100, 100);
 
-        // 2. Tab nào đang chọn thì đổi colorIdle thành Xanh
-        if (currentTab == TAB_DAUSACH) btnTabSach.colorIdle = Color(0, 100, 200);
-        if (currentTab == TAB_DOCGIA)  btnTabDocGia.colorIdle = Color(0, 100, 200);
-        if (currentTab == TAB_MUONTRA) btnTabMuon.colorIdle = Color(0, 100, 200);
-       if (currentTab == TAB_DOCGIA) {
-            myConsole.print("MA THE | HO TEN | PHAI | TRANG THAI");
-            myConsole.print("=============================================");
-            incay(dsdocgia, myConsole);
+    // --- 3. CẤU HÌNH GIAO DIỆN ---
+    
+    // A. BẢNG DỮ LIỆU
+    // Đặt bảng dịch sang phải (x=80), hiển thị 18 dòng
+    TableDisplay tableDisplay(80.f, 180.f, 15, "C:/Windows/Fonts/segoeui.ttf");
+
+    // Cấu trúc cột (Header & Width)
+    vector<string> headerDocGia = {"STT","MÃ THẺ", "HỌ VÀ TÊN", "PHÁI", "TRẠNG THÁI", "SÁCH MƯỢN"};
+    vector<int> widthDocGia = {5, 12, 35, 10, 20, 12}; 
+
+    vector<string> headerSach = {"STT","ISBN", "TÊN SÁCH", "SỐ TRANG", "TÁC GIẢ", "NĂM XUẤT BẢN", "THỂ LOẠI", "TỔNG BẢN SAO"};
+    vector<int> widthSach = {5, 15, 40, 10, 25, 14, 18, 14}; 
+
+    vector<string> headerMuon = {"STT","MÃ SÁCH", "TÊN SÁCH", "NGÀY MƯỢN", "HẠN TRẢ", "TRẠNG THÁI"};
+    vector<int> widthMuon = {5, 15, 35, 15, 15, 20};
+
+    // B. MENU TAB (Trên cùng)
+    float tabW = 350.f, tabH = 50.f, tabY = 50.f, tabGap = 20.f;
+    float totalTabsW = (tabW * 3) + (tabGap * 2);
+    float startTabX = (screenW - totalTabsW) / 2.0f; // Căn giữa màn hình
+
+    Color colTabIdle(60, 60, 70);   // Xám
+    Color colTabActive(0, 120, 215); // Xanh dương đậm
+    Color colTabHover(0, 128, 0); // Xanh lá 
+
+    Button btnTabSach(startTabX, tabY, tabW, tabH, "DANH MỤC SÁCH", font, colTabIdle);
+    Button btnTabDocGia(startTabX + tabW + tabGap, tabY, tabW, tabH, "ĐỘC GIẢ", font, colTabActive);
+    Button btnTabMuon(startTabX + (tabW + tabGap)*2, tabY, tabW, tabH, "MƯỢN - TRẢ", font, colTabIdle);
+
+    // C. NÚT CHỨC NĂNG (ĐÃ CHUYỂN XUỐNG DƯỚI ĐÁY)
+        
+    // Cấu hình kích thước và vị trí
+    float actionW = 250.f;       // Giữ nguyên chiều rộng nút
+    float actionH = 55.f;        // Chiều cao nút (nhỏ hơn xíu cho gọn)
+    float actionY = 870.f;       // Tọa độ Y cố định ở dưới cùng (Dưới bảng và nút phân trang)
+    float startActionX = 80.f;   // Bắt đầu từ lề trái (thẳng hàng với bảng)
+    float actionGap = 30.f;      // Khoảng cách giữa các nút
+
+    // Tính toán tọa độ X cho 4 vị trí nằm ngang
+    float x1 = startActionX;
+    float x2 = startActionX + actionW + actionGap;
+    float x3 = startActionX + (actionW + actionGap) * 2;
+    float x4 = startActionX + (actionW + actionGap) * 3;
+    float x5 = startActionX + (actionW + actionGap) * 4;
+
+    Color colBtnAction(46, 139, 87); // Màu SeaGreen (Dịu mắt)
+
+    // --- NHÓM ĐỘC GIẢ (Tab DocGia) ---
+    // Sắp xếp ngang: Thêm -> Xóa -> Sửa -> Khóa
+    Button btnAdd(x1, actionY, actionW, actionH, "THÊM ĐỘC GIẢ", font, colBtnAction);
+    Button btnDel(x2, actionY, actionW, actionH, "XOÁ ĐỘC GIẢ", font, colBtnAction);
+    Button btnEdit(x3, actionY, actionW, actionH, "HIỆU CHỈNH", font, colBtnAction);
+    Button btnlock(x4, actionY, actionW, actionH, "KHOÁ / MỞ KHOÁ", font, colBtnAction);
+
+    // --- NHÓM SÁCH (Tab DauSach) ---
+    // Sắp xếp ngang: Thêm -> Xóa -> Sửa -> Thêm Bản Sao
+    Button btnSach_Them(x1, actionY, actionW, actionH, "THÊM SÁCH", font, colBtnAction);
+    Button btnSach_Xoa(x2, actionY, actionW, actionH, "XOÁ SÁCH", font, colBtnAction);
+    Button btnSach_DieuChinh(x3, actionY, actionW, actionH, "SỬA THÔNG TIN", font, colBtnAction);
+    Button btnSach_ThemBanSao(x4, actionY, actionW, actionH, "THÊM BẢN SAO", font, colBtnAction);
+    Button btnSach_ChiTietBanSao(x5, actionY, actionW, actionH, "CHI TIẾT BẢN SAO", font, colBtnAction);
+
+    // --- NHÓM MƯỢN TRẢ (Tab MuonTra) ---
+    // Sắp xếp ngang: Xem Chi Tiết -> Trả Sách
+    Button btnMuon_in(x1, actionY, actionW, actionH, "XEM CHI TIET", font, colBtnAction);
+    Button btnMuon_Tra(x2, actionY, actionW, actionH, "TRA SACH", font, colBtnAction);
+
+    // D. NÚT PHÂN TRANG (Dưới bảng)
+    // Y = 180 (start bảng) + (18 dòng * 40px) = 900 => Đặt nút ở 950
+    float pageBtnY = 950.f;
+    Button btnPrevPage(80.f, pageBtnY, 150.f, 40.f, "<< TRƯỚC", font, Color(100, 100, 100));
+    Button btnNextPage(240.f, pageBtnY, 150.f, 40.f, "SAU >>", font, Color(100, 100, 100));
+
+    // --- 4. LOGIC ĐIỀU KHIỂN ---
+    CurrentTab currentTab = TAB_DOCGIA;
+    int currentViewMaThe = -1; // Lưu mã thẻ đang xem chi tiết
+
+    // Hàm làm mới dữ liệu bảng
+    // --- LAMBDA REFRESH LIST (Cập nhật giao diện) ---
+    auto RefreshList = [&]() {
+        tableDisplay.clear();
+
+        // 1. Reset màu sắc cho cả 3 Tab
+        // Trạng thái nghỉ (Idle) = Xám
+        btnTabSach.colorIdle = colTabIdle;
+        btnTabDocGia.colorIdle = colTabIdle;
+        btnTabMuon.colorIdle = colTabIdle;
+
+        // Trạng thái di chuột (Hover) = XANH SÁNG (Cho tất cả các tab)
+        // Dòng này giúp tab chưa chọn cũng hiện xanh khi hover
+        btnTabSach.colorHover = colTabHover;
+        btnTabDocGia.colorHover = colTabHover;
+        btnTabMuon.colorHover = colTabHover;
+
+        // 2. Xử lý Tab đang chọn (Active)
+        if (currentTab == TAB_DAUSACH) {
+            btnTabSach.colorIdle = colTabActive; // Đang chọn thì màu nền là Xanh Đậm
+            tableDisplay.setHeaders(headerSach, widthSach);
+            loadDauSachToTable(dsdausach, tableDisplay);
         }
-        else if (currentTab == TAB_DAUSACH) {
-            myConsole.print("ISBN | TEN SACH | SL | TON KHO");
-            myConsole.print("==========================================");
-            myConsole.print("(Dang phat trien chuc nang Sach...)");
+        else if (currentTab == TAB_DOCGIA) {
+            btnTabDocGia.colorIdle = colTabActive;
+            tableDisplay.setHeaders(headerDocGia, widthDocGia);
+            int stt = 0;
+            loadDocGiaToTable(dsdocgia, tableDisplay,stt);
         }
-        else {
-            myConsole.print("MA SACH | MA THE | NGAY MUON | HAN TRA");
-            myConsole.print("=======================================");
-            myConsole.print("(Vui long chon chuc nang IN DS MUON)");
+        else if (currentTab == TAB_MUONTRA) {
+            btnTabMuon.colorIdle = colTabActive;
+            tableDisplay.setHeaders(headerMuon, widthMuon);
             
+            if (currentViewMaThe != -1) {
+                timVaLoadMuonTra(dsdocgia, currentViewMaThe, tableDisplay);
+            } else {
+                 vector<string> msg = {"...", "CHON 'XEM CHI TIET'", "DE HIEN THI", "DU LIEU", "..."};
+                 tableDisplay.addRow(msg);
+            }
         }
     };
-    RefreshList();
-    while(true){
-            Vector2i pixelPos = Mouse::getPosition(Window);
-            Vector2f mousePos(static_cast<float>(pixelPos.x), static_cast<float>(pixelPos.y));
-            btnTabSach.update(mousePos); btnTabDocGia.update(mousePos); btnTabMuon.update(mousePos);
-            if (currentTab == TAB_DOCGIA) {
-            btnAdd.update(mousePos); btnDel.update(mousePos); 
-            btnEdit.update(mousePos); btnlock.update(mousePos);}
-            else if (currentTab == TAB_DAUSACH) {
-            btnSach_Them.update(mousePos); btnSach_Xoa.update(mousePos);
+
+    RefreshList(); // Gọi lần đầu
+
+    // --- 5. VÒNG LẶP CHÍNH ---
+    while (Window.isOpen()) {
+        // Cập nhật hiệu ứng Hover chuột
+        Vector2i pixelPos = Mouse::getPosition(Window);
+        Vector2f mousePos(static_cast<float>(pixelPos.x), static_cast<float>(pixelPos.y));
+
+        btnTabSach.update(mousePos); btnTabDocGia.update(mousePos); btnTabMuon.update(mousePos);
+        btnPrevPage.update(mousePos); btnNextPage.update(mousePos);
+
+        if (currentTab == TAB_DOCGIA) {
+            btnAdd.update(mousePos); btnDel.update(mousePos); btnEdit.update(mousePos); btnlock.update(mousePos);
         }
-        while(optional event = Window.pollEvent()){
-            if(event->is<Event::Closed>()){
-                Window.close();
+        else if (currentTab == TAB_DAUSACH) {
+            btnSach_Them.update(mousePos); btnSach_Xoa.update(mousePos); 
+            btnSach_DieuChinh.update(mousePos); btnSach_ThemBanSao.update(mousePos);
+            btnSach_ChiTietBanSao.update(mousePos);
+        }
+        else if (currentTab == TAB_MUONTRA) {
+            btnMuon_in.update(mousePos); btnMuon_Tra.update(mousePos);
+        }
+
+        // Xử lý sự kiện
+        while (const optional event = Window.pollEvent()) {
+            if (event->is<Event::Closed>()) Window.close();
+            
+            // Phím tắt chuyển trang
+            if (const auto* key = event->getIf<Event::KeyPressed>()) {
+                if (key->code == Keyboard::Key::PageUp) tableDisplay.prevPage();
+                if (key->code == Keyboard::Key::PageDown) tableDisplay.nextPage();
             }
-            if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()){
-                if (mouseBtn->button == Mouse::Button::Left){
-                    Vector2f clickPos(static_cast<float>(mouseBtn->position.x), 
-                                      static_cast<float>(mouseBtn->position.y));
+
+            if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
+                if (mouseBtn->button == Mouse::Button::Left) {
+                    Vector2f clickPos(static_cast<float>(mouseBtn->position.x), static_cast<float>(mouseBtn->position.y));
+                    
+                    // -- XỬ LÝ CLICK TAB --
                     if (btnTabDocGia.isClicked(clickPos)) { currentTab = TAB_DOCGIA; RefreshList(); }
                     if (btnTabSach.isClicked(clickPos)) { currentTab = TAB_DAUSACH; RefreshList(); }
-                    if (btnTabMuon.isClicked(clickPos)) { currentTab = TAB_MUONTRA; RefreshList(); }       
-        if (currentTab == TAB_DOCGIA) {                      
-        if (btnDel.isClicked(clickPos)) {
-        int maXoa = FormNhapMaXoa(font,dsdocgia,"Nhap Ma Can Xoa:");
-        if (maXoa != -1) {
-        xoathe(dsdocgia, maXoa); 
-        RefreshList(); 
-        cout << "Da xoa thanh cong: " << maXoa << endl;
-    }
-}
-                 if (btnAdd.isClicked(clickPos)) {
-                    TreeDocGia newNode = FormTaoDocGia(font);
-                    if (newNode != NULL) {
-                        caythedocgia(dsdocgia, newNode);
-                        cout << "Da them: " << newNode->dg.HO << " " << newNode->dg.TEN << endl;
-                        myConsole.clear();
-                        incay(dsdocgia, myConsole);
-                    }
-                }
-                if (btnEdit.isClicked(clickPos)) {  
-                int maCanSua = FormNhapMaXoa(font,dsdocgia,"NHAP MA CAN SUA:"); 
-                if (maCanSua != -1) {     
-                TheDocGia dataMoi;
-                dataMoi.MATHE = maCanSua;                         
-                if (FormSuaDocGia(font, dataMoi)) {                              
-                dieuchinhmathe(dsdocgia, dataMoi);
-                cout << "Da cap nhat thong tin!" << endl;
-                RefreshList(); // 
-               }              
-              }
-    }        
-            if(btnlock.isClicked(clickPos)){
-                int makhoa = FormNhapMaXoa(font,dsdocgia,"NHAP MA CAN KHOA:");
-                if(makhoa != -1){
-                    khoathe(dsdocgia,makhoa);
-                    RefreshList();
-                }
-            }
-            }
-          else if (currentTab == TAB_DAUSACH) {
-                        if (btnSach_Them.isClicked(clickPos)) {                           
-                            // FormTaoSach(...)
+                    if (btnTabMuon.isClicked(clickPos)) { currentTab = TAB_MUONTRA; currentViewMaThe = -1; RefreshList(); }
+                    
+                    // -- XỬ LÝ CLICK PHÂN TRANG --
+                    if (btnPrevPage.isClicked(clickPos)) tableDisplay.prevPage();
+                    if (btnNextPage.isClicked(clickPos)) tableDisplay.nextPage();
+
+                    // -- XỬ LÝ CLICK CHỨC NĂNG --
+                    if (currentTab == TAB_DOCGIA) {
+                        if (btnAdd.isClicked(clickPos)) {
+                            TreeDocGia newNode = FormTaoDocGia(font);
+                            if (newNode != NULL) {
+                                caythedocgia(dsdocgia, newNode);
+                                RefreshList(); 
+                            }
+                        }
+                        if (btnDel.isClicked(clickPos)) {
+                            int maXoa = FormNhapMaXoa(font, dsdocgia, "NHAP MA THE CAN XOA:");
+                            if (maXoa != -1) {
+                                xoathe(dsdocgia, maXoa);
+                                RefreshList();
+                            }
+                        }
+                        if (btnEdit.isClicked(clickPos)) {
+                            int maSua = FormNhapMaXoa(font, dsdocgia, "NHAP MA THE CAN SUA:");
+                            if (maSua != -1) {
+                                TheDocGia dgMoi; dgMoi.MATHE = maSua;
+                                if(FormSuaDocGia(font, dgMoi)) {
+                                    dieuchinhmathe(dsdocgia, dgMoi);
+                                    RefreshList();
+                                }
+                            }
+                        }
+                        if (btnlock.isClicked(clickPos)) {
+                            int maKhoa = FormNhapMaXoa(font, dsdocgia, "NHAP MA THE CAN KHOA:");
+                            if (maKhoa != -1) {
+                                khoathe(dsdocgia, maKhoa);
+                                RefreshList();
+                            }
                         }
                     }
-           else if(currentTab == TAB_MUONTRA){
-            if (btnMuon_in.isClicked(clickPos)) {
-               int macanxem = FormNhapMaXoa(font,dsdocgia,"MA THE CAN IN DANH SACH");
-               if(macanxem!=-1){
-            myConsole.clear();
-            myConsole.print("MA SACH | MA THE | NGAY MUON | HAN TRA");
-            myConsole.print("=======================================");
-            myConsole.print(">> DANH SACH MUON CUA: " + to_string(macanxem));
-            checkdsmuonsach(dsdocgia, macanxem, myConsole);
-               }
+                    else if (currentTab == TAB_DAUSACH) {
+                        // 1. THEM DAU SACH
+                        if (btnSach_Them.isClicked(clickPos)) {
+                            DauSach* pMoi = FormNhapSach(font, false); // false = mode Add
+                            if (pMoi != NULL) {
+                                FormThemDauSach(dsdausach, pMoi);
+                                RefreshList();
+                            }
+                        }
+                        // 2. XOA DAU SACH
+                        if (btnSach_Xoa.isClicked(clickPos)) {
+                            string isbn = FormNhapChuoi(font, "NHẬP ISBN CẦN XOÁ:", "ISBN:");
+                            if (!isbn.empty()) {
+                                FormXoaDauSach(dsdausach, isbn);
+                                RefreshList();
+                            }
+                        }
+                        // 3. SUA THONG TIN
+                        if (btnSach_DieuChinh.isClicked(clickPos)) {
+                            string isbn = FormNhapChuoi(font, "NHẬP ISBN CẦN SỬA:", "ISBN:");
+                            if (!isbn.empty()) {
+                                // Tìm sách để lấy dữ liệu cũ
+                                DauSach* oldData = NULL;
+                                int idx = -1;
+                                for(int i=0; i<dsdausach->n; i++) {
+                                    if(dsdausach->nodes[i]->ISBN == isbn) {
+                                        oldData = dsdausach->nodes[i];
+                                        idx = i;
+                                        break;
+                                    }
+                                }
+                                
+                                if (oldData != NULL) {
+                                    DauSach* newData = FormNhapSach(font, true, oldData); // true = mode Edit
+                                    if (newData != NULL) {
+                                        // Cập nhật lại thông tin
+                                        oldData->TENSACH = newData->TENSACH;
+                                        oldData->TACGIA = newData->TACGIA;
+                                        oldData->NAMXUATBAN = newData->NAMXUATBAN;
+                                        oldData->SOTRANG = newData->SOTRANG;
+                                        oldData->THELOAI = newData->THELOAI;
+                                        
+                                        // Nếu tên đổi, cần sort lại (đơn giản nhất là xóa đi add lại con trỏ, 
+                                        // nhưng ở đây tạm thời ta chỉ cập nhật giá trị để tránh lỗi pointer)
+                                        delete newData; // Xóa object tạm
+                                        RefreshList();
+                                    }
+                                }
+                            }
+                        }
+                        // 4. THEM BAN SAO
+                        if (btnSach_ThemBanSao.isClicked(clickPos)) {
+                            string isbn = FormNhapChuoi(font, "NHẬP ISBN ĐỂ THÊM BẢN SAO:", "ISBN:");
+                            if (!isbn.empty()) {
+                                // Mặc định thêm 1 cuốn, nếu muốn nhiều hơn có thể làm form nhập số
+                                FormThemBanSao(dsdausach, isbn, 1);
+                                RefreshList();
+                            }
+                        }
+                        // --- CHỨC NĂNG MỚI: CHI TIẾT BẢN SAO ---
+                        if (btnSach_ChiTietBanSao.isClicked(clickPos)) {
+                            // 1. Hỏi người dùng nhập ISBN
+                            string isbn = FormNhapChuoi(font, "NHẬP ISBN ĐỂ XEM CHI TIẾT:", "ISBN:");
+                            
+                            if (!isbn.empty()) {
+                                // 2. Tìm đầu sách trong mảng
+                                DauSach* pTim = NULL;
+                                for (int i = 0; i < dsdausach->n; i++) {
+                                    if (dsdausach->nodes[i]->ISBN == isbn) {
+                                        pTim = dsdausach->nodes[i];
+                                        break;
+                                    }
+                                }
+
+                                // 3. Nếu tìm thấy thì hiện Popup, không thì báo lỗi (hoặc lờ đi)
+                                if (pTim != NULL) {
+                                    FormXemChiTietBanSao(pTim, font);
+                                } else {
+                                    // Có thể dùng Form thông báo lỗi nếu muốn, hoặc cout tạm
+                                    cout << "Không tìm thấy sách có ISBN: " << isbn << endl;
+                                }
+                            }
+                        }
+                    }
+                    else if (currentTab == TAB_MUONTRA) {
+                        if (btnMuon_in.isClicked(clickPos)) {
+                            int maCanXem = FormNhapMaXoa(font, dsdocgia, "NHAP MA THE CAN XEM:");
+                            if (maCanXem != -1) {
+                                if (CheckMaThe(dsdocgia, maCanXem)) {
+                                    currentViewMaThe = maCanXem; // Lưu lại để hiển thị
+                                    RefreshList(); 
+                                } else {
+                                    // Báo lỗi nếu cần
+                                }
+                            }
+                        }
+                        if (btnMuon_Tra.isClicked(clickPos)) {
+                            int maThe = -1; string maSach = "", tenSach = "";
+                            if (FormTraSach(font, maThe, maSach, tenSach)) {
+                                trasach(dsdocgia, dsdausach, maThe, maSach, tenSach);
+                                if (currentViewMaThe == maThe) RefreshList(); // Cập nhật ngay nếu đang xem
+                            }
+                        }
+                    }
+                }
             }
-            if (btnMuon_Tra.isClicked(clickPos)) {
-    int maThe = -1;
-    string maSach = "";
-    string tenSach = "";
-    if (FormTraSach(font, maThe, maSach, tenSach) == true) {
-        trasach(dsdocgia, dsdausach, maThe, maSach, tenSach);
-        RefreshList();
+        }
+
+        // --- 6. VẼ GIAO DIỆN ---
+        Window.clear(Color(30, 32, 40)); // MÀU NỀN DARK BLUE GREY (Dễ chịu)
+
+        // Vẽ Tab
+        btnTabSach.draw(Window); btnTabDocGia.draw(Window); btnTabMuon.draw(Window);
+
+        // Vẽ Bảng & Phân trang
+        tableDisplay.draw(Window);
+        btnPrevPage.draw(Window); btnNextPage.draw(Window);
+
+        // Vẽ Nút Chức Năng (Tùy Tab)
+        if (currentTab == TAB_DOCGIA) {
+            btnAdd.draw(Window); btnDel.draw(Window); btnEdit.draw(Window); btnlock.draw(Window);
+        }
+        else if (currentTab == TAB_DAUSACH) {
+            btnSach_Them.draw(Window); btnSach_Xoa.draw(Window); 
+            btnSach_DieuChinh.draw(Window); btnSach_ThemBanSao.draw(Window);
+            btnSach_ChiTietBanSao.draw(Window);
+        }
+        else if (currentTab == TAB_MUONTRA) {
+            btnMuon_in.draw(Window); btnMuon_Tra.draw(Window);
+        }
+
+        Window.display();
     }
-}
-           }           
-        }
-        }
-            Window.clear(Color::Black);
-            btnTabSach.draw(Window); btnTabDocGia.draw(Window); btnTabMuon.draw(Window);
-            if (currentTab == TAB_DOCGIA) {
-            btnAdd.draw(Window);
-            btnDel.draw(Window);
-            btnEdit.draw(Window);
-            btnlock.draw(Window);}
-            else if (currentTab == TAB_DAUSACH) {
-            btnSach_Them.draw(Window); 
-            btnSach_Xoa.draw(Window);
-        }
-        else if(currentTab = TAB_MUONTRA){
-            btnMuon_in.draw(Window);
-            btnMuon_Tra.draw(Window);
-        }
-            myConsole.draw(Window);
-            Window.display();
-        }
-    }
-    delete dsdausach;
     return 0;
 }
