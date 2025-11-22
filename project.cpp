@@ -335,64 +335,64 @@ void checkdaymt(TreeDocGia & b,Date  a){
        p = p->next;
     }
 };
-void muonsach(DS_DauSach & a, TreeDocGia & b,const string s,int x){
-    if(b == NULL){
-        return; 
-    }
-    else if(b->dg.MATHE > x){
-        muonsach(a,b->left,s,x);
-    }
-    else if(b->dg.MATHE < x){
-        muonsach(a,b->right,s,x);
-    }
-    else {
-        Date t = time();
-        if(b->dg.dsmuontra!=NULL){
-            checkdaymt(b,t);
-        };
-        if(b->dg.sachmuon >= 3){
-          cout << "sinh vien nay dang muon 3 cuon sach"<<endl;
-          return;
-        }
-        if(b->dg.trangthai == 0){
-             cout << "the bi khoa "<<endl;
-             return;
-        }
-        for(int i = 0 ; i < a->n;++i){
-            if(a->nodes[i]->TENSACH == s){ // dò tên sách trùng
-                SACH temp = a->nodes[i]->dms;
-                while(temp != NULL){      
-                    if(temp->data.trangthai == 0){ // dò sách đó có ai mượn chưa
-                        MT tmp = makeMT();
-                        MT p = b->dg.dsmuontra;
-                         p = tmp;
-                         tmp->mt.MASACH = temp->data.MASACH;
-                         tmp->mt.TENSACH = a->nodes[i]->TENSACH;
-                         tmp->mt.trangthai2 = 0;
-                         b->dg.sachmuon ++;
-                         temp->data.trangthai =1;
-                         a->nodes[i]->slm ++;
-                         tmp->mt.NgayMuon = to_string(t.day) + "/"+ to_string(t.month) + "/" +to_string(t.year);
-                        if(b->dg.dsmuontra == NULL){
-                            b->dg.dsmuontra = tmp;
-                         cout << " muon thanh cong"<<endl;
-                         return;
-                        }
-                        else{
-                            while(p->next!=NULL){
-                                p = p->next;
-                            }
-                             p->next = tmp;
-                             cout << " muon thanh cong"<<endl;
-                            return;
-                        }
-                    }
-                    temp = temp->next;
-                }
-            }
-        }
-    }
-};
+// void muonsach(DS_DauSach & a, TreeDocGia & b,const string s,int x){
+//     if(b == NULL){
+//         return; 
+//     }
+//     else if(b->dg.MATHE > x){
+//         muonsach(a,b->left,s,x);
+//     }
+//     else if(b->dg.MATHE < x){
+//         muonsach(a,b->right,s,x);
+//     }
+//     else {
+//         Date t = time();
+//         if(b->dg.dsmuontra!=NULL){
+//             checkdaymt(b,t);
+//         };
+//         if(b->dg.sachmuon >= 3){
+//           cout << "sinh vien nay dang muon 3 cuon sach"<<endl;
+//           return;
+//         }
+//         if(b->dg.trangthai == 0){
+//              cout << "the bi khoa "<<endl;
+//              return;
+//         }
+//         for(int i = 0 ; i < a->n;++i){
+//             if(a->nodes[i]->TENSACH == s){ // dò tên sách trùng
+//                 SACH temp = a->nodes[i]->dms;
+//                 while(temp != NULL){      
+//                     if(temp->data.trangthai == 0){ // dò sách đó có ai mượn chưa
+//                         MT tmp = makeMT();
+//                         MT p = b->dg.dsmuontra;
+//                          p = tmp;
+//                          tmp->mt.MASACH = temp->data.MASACH;
+//                          tmp->mt.TENSACH = a->nodes[i]->TENSACH;
+//                          tmp->mt.trangthai2 = 0;
+//                          b->dg.sachmuon ++;
+//                          temp->data.trangthai =1;
+//                          a->nodes[i]->slm ++;
+//                          tmp->mt.NgayMuon = to_string(t.day) + "/"+ to_string(t.month) + "/" +to_string(t.year);
+//                         if(b->dg.dsmuontra == NULL){
+//                             b->dg.dsmuontra = tmp;
+//                          cout << " muon thanh cong"<<endl;
+//                          return;
+//                         }
+//                         else{
+//                             while(p->next!=NULL){
+//                                 p = p->next;
+//                             }
+//                              p->next = tmp;
+//                              cout << " muon thanh cong"<<endl;
+//                             return;
+//                         }
+//                     }
+//                     temp = temp->next;
+//                 }
+//             }
+//         }
+//     }
+// };
 void trasach(TreeDocGia& a,DS_DauSach & b, int x,string s, string t){
      if(a == NULL){
         return; 
@@ -499,6 +499,7 @@ void savefiletree(TreeDocGia& a,ofstream& f){
 void loadfiledocgia(TreeDocGia & a ,TreeDocGia & b, ifstream & f ){
     string doc;
     while(getline(f,doc)){
+        MT head=NULL;MT tail = NULL;
         TheDocGia tmp;
         stringstream ss(doc);
         string s;
@@ -518,7 +519,6 @@ void loadfiledocgia(TreeDocGia & a ,TreeDocGia & b, ifstream & f ){
         while(doc !="------------" ){
             MuonTra line;
             stringstream ss(doc);
-            MT head=NULL;MT tail = NULL;
             getline(f,doc);
             getline(ss, s, '|'); line.MASACH = s ;
             getline(ss, s, '|'); line.TENSACH =s;
