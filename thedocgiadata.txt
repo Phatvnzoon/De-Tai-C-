@@ -1,21 +1,33 @@
 1001|le thi hong|Nu|1|2020|2|0
+9780143127741-H4I5J6|Thinking Fast and Slow|20/11/2025||0
+9780385490818-Y5Z6A7|Sapiens|21/11/2025||0
 ------------
-1002|tran van nam|Nam|0|1888|1|1
+1002|tran van nam|Nam|1|1888|1|0
+9781491950296-I2O3P4|Designing Data-Intensive Applications|20/11/2025||0
 ------------
-1003|ngo minh duc|Nam|1|3000|0|0
+1003|ngo minh duc|Nam|1|3000|1|0
+9781617294136-P8A9S0|Grokking Algorithms|19/11/2025||0
 ------------
-1004|pham hoang yen|Nu|1|2500|0|0
+1004|pham hoang yen|Nu|1|2500|1|0
+9780316769174-G7H8I9|Nghia Dung Cuoc Song|20/11/2025||0
 ------------
-1005|doan anh tuan|Nam|0|1999|1|0
+1005|doan anh tuan|Nam|1|1999|1|0
+9780262033848-H4J5K6|Introduction to Algorithms|21/11/2025||0
 ------------
-1006|nguyen thi lan anh|Nu|1|3333|0|0
+1006|nguyen thi lan anh|Nu|1|3333|1|0
+9780132350884-U7I8O9|Clean Code|20/11/2025||0
 ------------
-1007|bui minh khang|Nam|1|2777|0|1
+1007|bui minh khang|Nam|1|2777|2|0
+9780134494166-B6N7M8|Clean Architecture|20/11/2025||0
+9780143127741-Q3R4S5|Thinking Fast and Slow|20/11/2025||0
 ------------
-1008|pham thi thao|Nu|1|2111|0|0
+1008|pham thi thao|Nu|1|2111|1|0
+9780385490818-S9T0U1|Sapiens|21/11/2025||0
 ------------
-1009|vu duc dat|Nam|1|1900|0|0
+1009|vu duc dat|Nam|1|1900|1|0
+9780132778046-G7H8J9|Effective C++|20/11/2025||0
 ------------
-1383|nguyen minh|Nam|1|1090|1|0
-9780132350884-Q1W2E3|Clean Code|13/11/2025||0
+1383|nguyen minh|Nam|1|1090|2|0
+9780132350884-Q1W2E3|Clean Code|20/11/2025||0
+9780735619678-G5H6J7|Code Complete|20/11/2025||0
 ------------
