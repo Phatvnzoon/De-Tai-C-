@@ -283,51 +283,53 @@ void khoathe(TreeDocGia & a,int x){ // khóa thẻ
 //         indsmuontra(a->dg.dsmuontra);
 //     }   
 // };
-void changebook(DS_DauSach & a,const string s,const string t,int x){
-    for(int i = 0 ; i < a->n;++i){
-        if(a->nodes[i]->TENSACH == t){
-            SACH tmp = a->nodes[i]->dms;
-            while(tmp != NULL){
-                if(tmp->data.MASACH == s){
-                    tmp->data.trangthai =x;
-                    return;
-                }
-                tmp = tmp->next;
-            }
-        }
-    }
-};
+// bool changebook(DS_DauSach & a,const string s,const string t,int x,String & thongbao){
+//     for(int i = 0 ; i < a->n;++i){
+//         if(a->nodes[i]->TENSACH == t){
+//             SACH tmp = a->nodes[i]->dms;
+//             while(tmp != NULL){
+//                 if(tmp->data.MASACH == s){
+//                     tmp->data.trangthai =x;
+//                     thongbao = "Trả Thành Công!";
+//                     return true ;
+//                 }
+//                 tmp = tmp->next;
+//             }
+//             thongbao = "Mã Sách Không Tồn Tại!";
+//             return false;
+//         }
+//         thongbao = "Tên Sách Không Tồn Tại!";
+//         return false;
+//     }
+// };
+int tinhngay(string &s){
+    stringstream ss(s);
+    string in;
+    int ketqua=0;
+    getline(ss,in,'/');ketqua += stoi(in);
+    getline(ss,in,'/');ketqua += stoi(in)*30;
+     getline(ss,in,'/');ketqua += stoi(in)*365;
+     return ketqua;
+     
+}
 void checkdaymt(TreeDocGia & b,Date  a){
     MT p = b->dg.dsmuontra;
-    int ketqua;
     string s;
     int ketquat = a.day + a.month*30 +a.year *365;
-    while (p == nullptr){
-        int cnt = 3;
-       for(int i = 0; i < p->mt.NgayMuon.size();i++){
-        int sum;
-           if(p->mt.NgayMuon[i]=='/'&& cnt == 3){
-              sum += stoi(s);
-              cnt --;
-              ketqua += sum;
-              s.clear();
-           }
-           else if(p->mt.NgayMuon[i]=='/'&& cnt == 2){
-              sum += stoi(s);
-              cnt --;
-              ketqua += sum * 30;
-              s.clear();
-           }
-           else if(cnt == 1){
-              sum += stoi(s);
-              cnt --;
-              ketqua += sum * 365;
-              s.clear();
-           }
-           else{
-              s = stoi(string(1,p->mt.NgayMuon[i]));
-           }
+    while (p != NULL){
+        int ketqua;
+        int ngaytra;
+        if(p->mt.trangthai2 ==1){
+           ketqua = tinhngay(p->mt.NgayMuon);
+           ngaytra = tinhngay(p->mt.NgayTra);
+       if(ngaytra-ketqua >=7){
+        b->dg.trangthai =0 ;
+        b->dg.quahan = ngaytra-ketqua;
        }
+            p = p->next;
+            continue;
+        }
+       ketqua = tinhngay(p->mt.NgayMuon);
        if(ketquat - ketqua >= 7){
           b->dg.trangthai = 0;
           b->dg.quahan = ketquat - ketqua;
@@ -393,30 +395,31 @@ void checkdaymt(TreeDocGia & b,Date  a){
 //         }
 //     }
 // };
-void trasach(TreeDocGia& a,DS_DauSach & b, int x,string s, string t){
-     if(a == NULL){
-        return; 
-    }
-    else if(a->dg.MATHE > x){
-       trasach(a->left,b,x,s,t);
-    }
-    else if(a->dg.MATHE < x){
-        trasach(a->right,b,x,s,t);
-    }
-    else{
-        Date TIME = time();
-         changebook(b,s,t,0);
-         MT temp = a->dg.dsmuontra;
-         while(temp != NULL){
-            if (temp->mt.MASACH == s){
-                temp->mt.trangthai2 = 1 ;
-                temp->mt.NgayTra = to_string(TIME.day)+"/"+to_string(TIME.month)+"/"+to_string(TIME.year);
-                return;
-            }
-            temp = temp->next;
-         }
-    }
-};
+// void trasach(TreeDocGia& a,DS_DauSach & b, int x,string s, string t){
+//      if(a == NULL){
+//         return; 
+//     }
+//     else if(a->dg.MATHE > x){
+//        trasach(a->left,b,x,s,t);
+//     }
+//     else if(a->dg.MATHE < x){
+//         trasach(a->right,b,x,s,t);
+//     }
+//     else{
+//         Date TIME = time();
+//          changebook(b,s,t,0);
+         
+//          MT temp = a->dg.dsmuontra;
+//          while(temp != NULL){
+//             if (temp->mt.MASACH == s){
+//                 temp->mt.trangthai2 = 1 ;
+//                 temp->mt.NgayTra = to_string(TIME.day)+"/"+to_string(TIME.month)+"/"+to_string(TIME.year);
+//                 return;
+//             }
+//             temp = temp->next;
+//          }
+//     }
+// };
 void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
     int cnt = 0;
     DauSach tmp[10];
@@ -452,34 +455,37 @@ void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
         // thieu in
     }
 };
-void luudsquahan(TreeDocGia & a , DS_TheDocgia & b){
+void luudsquahan(TreeDocGia & a , DS_TheDocgia & b,Date c){
     if(a== NULL){
         return;
     }
-    luudsquahan(a->left,b);
+    else{
+        checkdaymt(a,c);
+    }
+    luudsquahan(a->left,b,c);
      if(a->dg.quahan >= 7){
         b.list[b.cnt++] = a->dg;
      }
-    luudsquahan(a->right,b);
+    luudsquahan(a->right,b,c);
 };
-void inquahan(DS_TheDocgia & a){ // câu i
-    for(int i = 0 ; i < a.cnt; i++){
-        for(int j = i+1; j < a.cnt; j ++){
-            if(a.list[i].quahan < a.list[j].quahan){
-                TheDocGia tmp = a.list[i];
-                a.list[i] = a.list[j];
-                a.list[j] = tmp;
-            }
-        }
-    }
-    for(int i = 0 ; i < a.cnt; i++){
-        cout << a.list[i].MATHE <<endl;
-        cout << a.list[i].HO <<" "<<a.list[i].TEN <<endl;
-        cout << a.list[i].PHAI <<endl;
-        cout << a.list[i].quahan <<endl;
-        cout << a.list[i].trangthai <<endl;
-    }
-};
+// void inquahan(DS_TheDocgia & a){ // câu i
+//     for(int i = 0 ; i < a.cnt; i++){
+//         for(int j = i+1; j < a.cnt; j ++){
+//             if(a.list[i].quahan < a.list[j].quahan){
+//                 TheDocGia tmp = a.list[i];
+//                 a.list[i] = a.list[j];
+//                 a.list[j] = tmp;
+//             }
+//         }
+//     }
+//     for(int i = 0 ; i < a.cnt; i++){
+//         cout << a.list[i].MATHE <<endl;
+//         cout << a.list[i].HO <<" "<<a.list[i].TEN <<endl;
+//         cout << a.list[i].PHAI <<endl;
+//         cout << a.list[i].quahan <<endl;
+//         cout << a.list[i].trangthai <<endl;
+//     }
+// };
 void savefiletree(TreeDocGia& a,ofstream& f){
     if(a == NULL){
         return;
