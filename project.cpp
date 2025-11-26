@@ -16,6 +16,8 @@
 #include <set>
 #include <limits>
 #include <cmath>
+#include <optional>
+#include "mylib.h"
 
 using namespace std;
 const int MAX_DAUSACH = 10000;
@@ -593,14 +595,11 @@ void loadfilesach(DS_DauSach &ds_dausach, ifstream &f){
         string value;
 
         getline(ss, value, '|'); ds_dausach->nodes[i]->ISBN = value;
-        getline(ss, value, '|'); ds_dausach->nodes[i]->TENSACH = value;
-        chuanhoachuoi(ds_dausach->nodes[i]->TENSACH);
+        getline(ss, value, '|'); chuanhoachuoi(value); ds_dausach->nodes[i]->TENSACH = value;
         getline(ss, value, '|'); ds_dausach->nodes[i]->SOTRANG = stoi(value);
-        getline(ss, value, '|'); ds_dausach->nodes[i]->TACGIA = value;
-        chuanhoachuoi(ds_dausach->nodes[i]->TACGIA);
+        getline(ss, value, '|'); chuanhoachuoi(value); ds_dausach->nodes[i]->TACGIA = value;
         getline(ss, value, '|'); ds_dausach->nodes[i]->NAMXUATBAN = stoi(value);
-        getline(ss, value, '|'); ds_dausach->nodes[i]->THELOAI = value;
-        chuanhoachuoi(ds_dausach->nodes[i]->THELOAI);
+        getline(ss, value, '|'); chuanhoachuoi(value); ds_dausach->nodes[i]->THELOAI = value;
         getline(ss, value, '|'); ds_dausach->nodes[i]->slsach = stoi(value);
 
         // Doc danh muc sach con
@@ -677,9 +676,49 @@ bool MaSachTrung(DauSach *ds, string &Ma){
     }
     return false;
 }
+string randomVitrisach(){
+    string dske[] = {"Kệ chính", "Kệ phụ 1", "Kệ phụ 2"};
+    int r = rand() % 3;
+    return dske[r];
+}
 
+// --- 1. Insertion Sort theo TÊN SÁCH (Tăng dần) ---
+void SortTen(DS_DauSach &ds) {
+    // Duyệt từ phần tử thứ 2 trở đi
+    for (int i = 1; i < ds->n; i++) {
+        DauSach* key = ds->nodes[i]; // Lưu con trỏ sách đang xét
+        int j = i - 1;
+
+        // Dời các phần tử đứng trước nó mà có Tên lớn hơn nó ra sau
+        while (j >= 0 && ds->nodes[j]->TENSACH > key->TENSACH) {
+            ds->nodes[j + 1] = ds->nodes[j];
+            j--;
+        }
+        // Chèn key vào vị trí trống sau khi dời
+        ds->nodes[j + 1] = key;
+    }
+}
+
+// --- 2. Insertion Sort theo THỂ LOẠI (Tăng dần) ---
+// (Nếu trùng thể loại thì sắp xếp theo Tên)
+void SortTheLoai(DS_DauSach &ds) {
+    for (int i = 1; i < ds->n; i++) {
+        DauSach* key = ds->nodes[i];
+        int j = i - 1;
+
+        // Điều kiện dời: 
+        // 1. Thể loại đứng trước LỚN HƠN Thể loại của key
+        // 2. HOẶC Thể loại bằng nhau NHƯNG Tên đứng trước lớn hơn Tên của key
+        while (j >= 0 && (ds->nodes[j]->THELOAI > key->THELOAI || 
+                         (ds->nodes[j]->THELOAI == key->THELOAI && ds->nodes[j]->TENSACH > key->TENSACH))) {
+            ds->nodes[j + 1] = ds->nodes[j];
+            j--;
+        }
+        ds->nodes[j + 1] = key;
+    }
+}
 //Nhập đầu sách
-void NhapDauSach(DS_DauSach &ds_dausach){
+/*void NhapDauSach(DS_DauSach &ds_dausach){
     if (ds_dausach->n >= MAX_DAUSACH){
         cout << "Danh sach da day, khong the nhap!" << endl;
         Sleep(1000);
@@ -741,12 +780,9 @@ void NhapDauSach(DS_DauSach &ds_dausach){
     ds_dausach->nodes[ViTriChen] = p; // thêm phần tử vào danh sách
     ds_dausach->n++;// tăng số lượng phần tử
     cout << "\nDa them thanh cong!" << endl;
-}
-void XoaDauSach(DS_DauSach & ds_dausach){
-    string isbn_can_xoa;
-    cin.ignore(); 
-    NhapISBN("Nhap ISBN cua dau sach can xoa: ", isbn_can_xoa);
+}*/
 
+/*void FormXoaDauSach(DS_DauSach & ds_dausach, string isbn_can_xoa){
     int vi_tri_xoa = -1;
     // Tìm vị trí của đầu sách cần xóa dựa trên ISBN
     for (int i = 0; i < ds_dausach->n; i++) {
@@ -757,16 +793,13 @@ void XoaDauSach(DS_DauSach & ds_dausach){
     }
 
     // Nếu không tìm thấy
-    if (vi_tri_xoa == -1) {
-        cout << "Khong tim thay dau sach voi ISBN: " << isbn_can_xoa << endl;
-        
-        return;
-    }
+    if (vi_tri_xoa == -1) return;
+
+    
 
     // Kiểm tra xem có sách nào đang được mượn không
-    DauSach *dau_sach_can_xoa = ds_dausach->nodes[vi_tri_xoa];
     bool dang_duoc_muon = false;
-    SACH p = dau_sach_can_xoa->dms;
+    SACH p = ds_dausach->nodes[vi_tri_xoa]->dms;
     while (p != NULL) {
         if (p->data.trangthai == 1) { // 1 = đã mượn
             dang_duoc_muon = true;
@@ -776,32 +809,27 @@ void XoaDauSach(DS_DauSach & ds_dausach){
     }
 
     // Nếu đang có sách được mượn, không cho xóa
-    if (dang_duoc_muon) {
-        cout << "Khong the xoa dau sach nay. Co sach dang duoc doc gia muon." << endl;
-        
-        return;
-    }
+    if (dang_duoc_muon) return;
 
     // Nếu không, tiến hành xóa
-    cout << "Ban co chac chan muon xoa dau sach '" << dau_sach_can_xoa->TENSACH << "' (ISBN: " << dau_sach_can_xoa->ISBN << ")? (Y/N): ";
+    cout << "Ban co chac chan muon xoa dau sach '" << ds_dausach->nodes[vi_tri_xoa]->TENSACH << "' (ISBN: " << ds_dausach->nodes[vi_tri_xoa]->ISBN << ")? (Y/N): ";
     string xac_nhan;
     cin.ignore();
     getline(cin,xac_nhan);
     
     if (xac_nhan == "N" || xac_nhan == "n") {
         cout << "Da huy thao tac xoa." << endl;
-        
         return;
     }
     
     // Giải phóng danh sách các sách con 
-    SACH current_sach = dau_sach_can_xoa->dms;
+    SACH current_sach = ds_dausach->nodes[vi_tri_xoa]->dms;
     while (current_sach != NULL) {
         SACH temp = current_sach;
         current_sach = current_sach->next;
         delete temp;
     }
-    delete dau_sach_can_xoa;
+    delete ds_dausach->nodes[vi_tri_xoa];
 
     // Dịch chuyển các phần tử còn lại trong mảng nodes[] để lấp chỗ trống
     for (int i = vi_tri_xoa; i < ds_dausach->n - 1; i++) {
@@ -814,10 +842,10 @@ void XoaDauSach(DS_DauSach & ds_dausach){
 
     cout << "Da xoa dau sach thanh cong!" << endl;
     
-}
+}*/
 
 //Điều chỉnh đầu sách
-void DieuChinhDauSach(DS_DauSach &ds_dausach) {
+/*void DieuChinhDauSach(DS_DauSach &ds_dausach) {
     string isbn_can_sua;
     cin.ignore(); 
     
@@ -961,7 +989,7 @@ void DieuChinhDauSach(DS_DauSach &ds_dausach) {
 
     cout << "Da cap nhat dau sach thanh cong!" << endl;
     
-}
+}*/
 void In_DS_TheLoai(DS_DauSach &ds_dausach){
     if (ds_dausach == NULL || ds_dausach->n == 0){
         cout << "Khong co dau sach trong thu vien.\n";
