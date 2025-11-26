@@ -337,6 +337,132 @@ public:
     }
 };
 
+// Hàm hiển thị hộp thoại xác nhận (Trả về true nếu bấm ĐỒNG Ý, false nếu HỦY)
+bool ShowConfirm(const Font& font, String noiDung) {
+    RenderWindow msgBox(VideoMode({500, 250}), L"Xác Nhận", Style::Titlebar | Style::Close);
+    msgBox.setFramerateLimit(60);
+
+    // Nội dung câu hỏi
+    Text txtContent(font);
+    txtContent.setString(noiDung);
+    txtContent.setCharacterSize(18);
+    txtContent.setFillColor(Color::White);
+    
+    // Căn giữa nội dung
+    FloatRect textRect = txtContent.getLocalBounds();
+    txtContent.setOrigin({textRect.size.x / 2.0f, textRect.size.y / 2.0f});
+    txtContent.setPosition({250.f, 80.f}); 
+
+    // Nút ĐỒNG Ý (Màu đỏ để cảnh báo xóa)
+    RectangleShape btnYes({100.f, 35.f});
+    btnYes.setPosition({120.f, 160.f}); 
+    btnYes.setFillColor(Color(200, 50, 50)); 
+
+    Text txtYes(font);
+    txtYes.setString(L"ĐỒNG Ý");
+    txtYes.setCharacterSize(18);
+    FloatRect rectYes = txtYes.getLocalBounds();
+    txtYes.setOrigin({rectYes.size.x / 2.0f, rectYes.size.y / 2.0f});
+    txtYes.setPosition({170.f, 172.f});
+
+    // Nút HỦY (Màu xám)
+    RectangleShape btnNo({100.f, 35.f});
+    btnNo.setPosition({280.f, 160.f}); 
+    btnNo.setFillColor(Color(100, 100, 100)); 
+
+    Text txtNo(font);
+    txtNo.setString(L"HỦY");
+    txtNo.setCharacterSize(18);
+    FloatRect rectNo = txtNo.getLocalBounds();
+    txtNo.setOrigin({rectNo.size.x / 2.0f, rectNo.size.y / 2.0f});
+    txtNo.setPosition({330.f, 172.f});
+
+    while (msgBox.isOpen()) {
+        while (const optional event = msgBox.pollEvent()) {
+            if (event->is<Event::Closed>()) { msgBox.close(); return false; }
+            
+            if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
+                if (mouseBtn->button == Mouse::Button::Left) {
+                    Vector2f mousePos(static_cast<float>(mouseBtn->position.x), 
+                                      static_cast<float>(mouseBtn->position.y));
+                    
+                    // Nếu bấm ĐỒNG Ý -> Trả về true
+                    if (btnYes.getGlobalBounds().contains(mousePos)) {
+                        msgBox.close();
+                        return true;
+                    }
+                    // Nếu bấm HỦY -> Trả về false
+                    if (btnNo.getGlobalBounds().contains(mousePos)) {
+                        msgBox.close();
+                        return false;
+                    }
+                }
+            }
+        }
+
+        msgBox.clear(Color(50, 50, 50)); 
+        msgBox.draw(txtContent);
+        msgBox.draw(btnYes); msgBox.draw(txtYes);
+        msgBox.draw(btnNo);  msgBox.draw(txtNo);
+        msgBox.display();
+    }
+    return false;
+}
+
+void ShowMessage(const Font& font, String noiDung) {
+    // 1. Tạo cửa sổ nhỏ 400x200
+    RenderWindow msgBox(VideoMode({450, 200}), L"Thông Báo", Style::Titlebar | Style::Close);
+    msgBox.setFramerateLimit(60);
+
+    // 2. Nội dung thông báo
+    Text txtContent(font);
+    txtContent.setString(noiDung);
+    txtContent.setCharacterSize(18);
+    txtContent.setFillColor(Color::White);
+    
+    // Căn giữa nội dung
+    FloatRect textRect = txtContent.getLocalBounds();
+    txtContent.setOrigin({textRect.size.x / 2.0f, textRect.size.y / 2.0f});
+    txtContent.setPosition({225.f, 80.f}); // Giữa cửa sổ (450/2)
+
+    // 3. Nút OK
+    RectangleShape btnOK({100.f, 35.f});
+    btnOK.setPosition({175.f, 140.f}); // Căn giữa (450-100)/2
+    btnOK.setFillColor(Color(0, 120, 215)); // Xanh dương
+
+    Text txtBtn(font);
+    txtBtn.setString("OK");
+    txtBtn.setCharacterSize(18);
+    FloatRect btnRect = txtBtn.getLocalBounds();
+    txtBtn.setOrigin({btnRect.size.x / 2.0f, btnRect.size.y / 2.0f});
+    txtBtn.setPosition({225.f, 152.f});
+
+    // 4. Vòng lặp chờ bấm OK
+    while (msgBox.isOpen()) {
+        while (const optional event = msgBox.pollEvent()) {
+            // Đóng khi bấm X
+            if (event->is<Event::Closed>()) msgBox.close();
+            // Đóng khi Click nút OK
+            if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
+                if (mouseBtn->button == Mouse::Button::Left) {
+                    Vector2f mousePos(static_cast<float>(mouseBtn->position.x), 
+                                      static_cast<float>(mouseBtn->position.y));
+                    
+                    if (btnOK.getGlobalBounds().contains(mousePos)) {
+                        msgBox.close();
+                    }
+                }
+            }
+        }
+
+        msgBox.clear(Color(50, 50, 50)); // Nền xám đậm
+        msgBox.draw(txtContent);
+        msgBox.draw(btnOK);
+        msgBox.draw(txtBtn);
+        msgBox.display();
+    }
+}
+
 TreeDocGia FormTaoDocGia(const Font &font,TreeDocGia & b) {
     RenderWindow popup(VideoMode({400, 550}), L"Thêm Độc Giả", Style::Titlebar | Style::Close);
     popup.setFramerateLimit(60);
@@ -881,7 +1007,7 @@ bool FormMuonSach(const Font &font, int &outMaThe, string &outTenSach) {
 }
 // Hàm hiển thị popup nhập một chuỗi (Dùng để nhập ISBN khi xóa hoặc tìm)
 string FormNhapChuoi(const Font &font, string title, string label) {
-    RenderWindow popup(VideoMode({400, 250}), "Nhập Liệu", Style::Titlebar | Style::Close);
+    RenderWindow popup(VideoMode({400u, 250u}), L"Nhập Liệu", Style::Titlebar | Style::Close);
     popup.setFramerateLimit(60);
 
     InputField input(50.f, 80.f, 300.f, 35.f, label, font);
@@ -896,21 +1022,34 @@ string FormNhapChuoi(const Font &font, string title, string label) {
     txtBtn.setCharacterSize(18);
     txtBtn.setPosition({155.f, 168.f});
 
+    // --- THÊM: Text thông báo lỗi ---
+    Text txtError(font);
+    txtError.setCharacterSize(14);       // Chữ nhỏ vừa phải
+    txtError.setFillColor(Color::Red);   // Màu đỏ cảnh báo
+    txtError.setPosition({50.f, 125.f}); // Nằm giữa ô nhập và nút bấm
+    txtError.setString("");              // Ban đầu để rỗng
+
     while (popup.isOpen()) {
         while (const optional event = popup.pollEvent()) {
             if (event->is<Event::Closed>()) { popup.close(); return ""; }
             if (const auto* key = event->getIf<Event::KeyPressed>()) {
                 if (key->code == Keyboard::Key::Escape) { popup.close(); return ""; }
             }
-
+            string oldContent = input.content;
             input.handleEvent(*event, popup);
-
+            if (input.content != oldContent){//người dùng đang nhập
+                txtError.setString("");
+            }
             if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
                 if (mouseBtn->button == Mouse::Button::Left) {
                     if (btnOk.getGlobalBounds().contains(Vector2f(mouseBtn->position.x, mouseBtn->position.y))) {
                         if (!input.content.empty()) {
                             popup.close();
                             return input.content;
+                        }else {
+                        // --- THÊM: Nếu rỗng thì hiện lỗi ---
+                        string errStr = "Lỗi: Vui lòng nhập thông tin!";
+                        txtError.setString(sf::String::fromUtf8(errStr.begin(), errStr.end()));
                         }
                     }
                 }
@@ -921,6 +1060,7 @@ string FormNhapChuoi(const Font &font, string title, string label) {
         tTitle.setString(sf::String::fromUtf8(title.begin(), title.end()));
         tTitle.setPosition(Vector2f(10.f, 10.f));
         tTitle.setCharacterSize(20);
+        popup.draw(txtError);
         popup.draw(tTitle);
         input.draw(popup);
         popup.draw(btnOk); popup.draw(txtBtn);
@@ -930,36 +1070,70 @@ string FormNhapChuoi(const Font &font, string title, string label) {
 }
 // Trả về con trỏ DauSach mới nếu thêm thành công, hoặc NULL nếu hủy
 // Nếu modeEdit = true, data sẽ là dữ liệu cũ để fill vào ô
-DauSach* FormNhapSach(const Font &font, bool modeEdit, DauSach* dataEdit = NULL) {
-    RenderWindow popup(VideoMode({500, 700}), modeEdit ? "Hiệu Chỉnh Sách" : "Thêm Đầu Sách", Style::Titlebar | Style::Close);
+DauSach* FormNhapSach(const Font &font, bool modeEdit, int &slThem, DauSach* dataEdit = NULL) {
+    slThem = 0;
+    RenderWindow popup(VideoMode({500u, 700u}), modeEdit ? L"Hiệu Chỉnh Sách" : L"Thêm Đầu Sách", Style::Titlebar | Style::Close);
     popup.setFramerateLimit(60);
 
     // Tạo các ô input
     InputField inpISBN(50, 50, 400, 30, "ISBN (Tối đa 13 ký tự):", font);
     InputField inpTen(50, 130, 400, 30, "Tên Sách:", font);
-    InputField inpTrang(50, 210, 150, 30, "SO TRANG:", font);
-    InputField inpNam(250, 210, 200, 30, "NAM XB:", font);
-    InputField inpTacGia(50, 290, 400, 30, "TAC GIA:", font);
-    InputField inpTheLoai(50, 370, 400, 30, "THE LOAI:", font);
+    InputField inpTrang(50, 210, 150, 30, "Số Trang:", font);
+    InputField inpNam(250, 210, 200, 30, "Năm xuất bản:", font);
+    InputField inpTacGia(50, 290, 400, 30, "Tác giả:", font);
+    InputField inpTheLoai(50, 370, 400, 30, "Thể loại:", font);
     
     // Chỉ dùng cho mode Thêm mới (để tạo tự động các bản sao)
-    InputField inpSoLuong(50, 450, 150, 30, "SO LUONG SACH:", font); 
-
+    InputField inpSoLuong(50, 450, 150, 30, "Số lượng bản sao:", font); 
     Text txtErr(font); txtErr.setFillColor(Color::Red); txtErr.setCharacterSize(16); txtErr.setPosition(Vector2f(50.f, 600.f));
 
+    // --- NÚT THÊM BẢN SAO (CHỈ HIỆN KHI EDIT) ---
+    RectangleShape btnAddCopy({40.f, 30.f});
+    btnAddCopy.setPosition({210.f, 450.f});
+    btnAddCopy.setFillColor(Color(0, 150, 0)); // Màu xanh lá
+    
+    Text txtAddCopy(font); 
+    txtAddCopy.setString("+");
+    txtAddCopy.setCharacterSize(24);
+    txtAddCopy.setPosition({222.f, 448.f});
+
+    Text txtErr1(font); txtErr1.setFillColor(Color::Red); txtErr1.setCharacterSize(16); txtErr1.setPosition(Vector2f(50.f, 600.f));
     // Nút Lưu
     RectangleShape btnSave(Vector2f(140.f, 45.f)); btnSave.setPosition(Vector2f(180.f, 530.f)); btnSave.setFillColor(Color::Blue);
-    Text txtSave(font); txtSave.setString("LUU"); txtSave.setPosition(Vector2f(210.f, 540.f)); txtSave.setCharacterSize(20);
+    Text txtSave(font); txtSave.setString(L"LƯU"); txtSave.setPosition(Vector2f(230.f, 540.f)); txtSave.setCharacterSize(20);
 
     // Nếu là EDIT, điền dữ liệu cũ vào
+    int slHientai = 0;
     if (modeEdit && dataEdit != NULL) {
-        inpISBN.content = dataEdit->ISBN; inpISBN.text.setString(dataEdit->ISBN);
-        inpTen.content = dataEdit->TENSACH; inpTen.text.setString(dataEdit->TENSACH);
-        inpTrang.content = to_string(dataEdit->SOTRANG); inpTrang.text.setString(to_string(dataEdit->SOTRANG));
-        inpNam.content = to_string(dataEdit->NAMXUATBAN); inpNam.text.setString(to_string(dataEdit->NAMXUATBAN));
-        inpTacGia.content = dataEdit->TACGIA; inpTacGia.text.setString(dataEdit->TACGIA);
-        inpTheLoai.content = dataEdit->THELOAI; inpTheLoai.text.setString(dataEdit->THELOAI);
+        // ISBN
+        inpISBN.content = dataEdit->ISBN; 
+        inpISBN.text.setString(sf::String::fromUtf8(dataEdit->ISBN.begin(), dataEdit->ISBN.end()));
+
+        // TÊN SÁCH (Quan trọng: Dùng fromUtf8 để hiện Tiếng Việt)
+        inpTen.content = dataEdit->TENSACH; 
+        inpTen.text.setString(sf::String::fromUtf8(dataEdit->TENSACH.begin(), dataEdit->TENSACH.end()));
+
+        // SỐ TRANG
+        inpTrang.content = to_string(dataEdit->SOTRANG); 
+        inpTrang.text.setString(sf::String::fromUtf8(inpTrang.content.begin(), inpTrang.content.end()));
+
+        // NĂM XUẤT BẢN
+        inpNam.content = to_string(dataEdit->NAMXUATBAN); 
+        inpNam.text.setString(sf::String::fromUtf8(inpNam.content.begin(), inpNam.content.end()));
+
+        // TÁC GIẢ (Quan trọng: Dùng fromUtf8 để hiện Tiếng Việt)
+        inpTacGia.content = dataEdit->TACGIA; 
+        inpTacGia.text.setString(sf::String::fromUtf8(dataEdit->TACGIA.begin(), dataEdit->TACGIA.end()));
+
+        // THỂ LOẠI (Quan trọng: Dùng fromUtf8 để hiện Tiếng Việt)
+        inpTheLoai.content = dataEdit->THELOAI; 
+        inpTheLoai.text.setString(sf::String::fromUtf8(dataEdit->THELOAI.begin(), dataEdit->THELOAI.end()));
         
+        // SỐ LƯỢNG
+        slHientai = dataEdit->slsach;
+        inpSoLuong.content = to_string(slHientai);
+        inpSoLuong.text.setString(sf::String::fromUtf8(inpSoLuong.content.begin(), inpSoLuong.content.end()));
+
         // Không cho sửa ISBN và Số lượng khi Edit
         // (Logic: input ISBN sẽ không nhận event click để focus)
     }
@@ -981,13 +1155,31 @@ DauSach* FormNhapSach(const Font &font, bool modeEdit, DauSach* dataEdit = NULL)
             if (!modeEdit) inpSoLuong.handleEvent(*event, popup);
 
             if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
-                if (mouseBtn->button == Mouse::Button::Left) {
-                     Vector2f mousePos(static_cast<float>(mouseBtn->position.x), static_cast<float>(mouseBtn->position.y));
+                    if (mouseBtn->button == Mouse::Button::Left) {
+                        Vector2f mousePos(static_cast<float>(mouseBtn->position.x), static_cast<float>(mouseBtn->position.y));
                     
+                     // --- XỬ LÝ NÚT THÊM BẢN SAO (+) ---
+                    if (modeEdit && btnAddCopy.getGlobalBounds().contains(mousePos)) {
+                        // Gọi form nhập số nhỏ để hỏi muốn thêm bao nhiêu
+                        string strAdd = FormNhapChuoi(font, "NHẬP SỐ LƯỢNG THÊM:", "SỐ LƯỢNG:");
+                        int nThem = -1;
+                        number(strAdd, nThem); // Hàm check số của bạn
+                        
+                        if (nThem > 0) {
+                            slThem += nThem; // Cộng dồn vào biến slThem
+                            // Cập nhật hiển thị
+                            inpSoLuong.content = to_string(slHientai + slThem);
+                            inpSoLuong.text.setString(inpSoLuong.content);
+                            
+                            // Thông báo nhẹ (hoặc in ra txtErr màu xanh nếu muốn)
+                            txtErr.setFillColor(Color::Green);
+                            txtErr.setString(L"Đã thêm " + to_wstring(nThem) + L" bản sao (Bấm LƯU để hoàn tất)");
+                        }
+                    }
                     if (btnSave.getGlobalBounds().contains(mousePos)) {
                         // Validate
                         if (inpISBN.content.empty() || inpTen.content.empty()) {
-                            txtErr.setString("Loi: ISBN va Ten khong duoc de trong!"); continue;
+                            txtErr.setString(L"Lỗi: ISBN và tên không được để trống"); continue;
                         }
                         
                         DauSach* result = new DauSach();
@@ -1000,9 +1192,9 @@ DauSach* FormNhapSach(const Font &font, bool modeEdit, DauSach* dataEdit = NULL)
                             result->SOTRANG = stoi(inpTrang.content);
                             result->NAMXUATBAN = stoi(inpNam.content);
                             if (!modeEdit) result->slsach = stoi(inpSoLuong.content);
-                            else result->slsach = dataEdit->slsach; // Giữ nguyên số lượng cũ
+                            else result->slsach = slHientai + slThem; // Giữ nguyên số lượng cũ
                         } catch (...) {
-                            txtErr.setString("Loi: So trang, Nam, So luong phai la so!");
+                            txtErr.setString(L"Lỗi: Số trang, Năm, Số lượng bản sao phải là số");
                             delete result; continue;
                         }
 
@@ -1016,8 +1208,11 @@ DauSach* FormNhapSach(const Font &font, bool modeEdit, DauSach* dataEdit = NULL)
         popup.clear(Color(30, 30, 35));
         inpISBN.draw(popup); inpTen.draw(popup); inpTrang.draw(popup);
         inpNam.draw(popup); inpTacGia.draw(popup); inpTheLoai.draw(popup);
-        if (!modeEdit) inpSoLuong.draw(popup); // Chỉ hiện ô số lượng khi thêm mới
-
+        inpSoLuong.draw(popup); // Chỉ hiện ô số lượng khi thêm mới
+        if (modeEdit){
+            popup.draw(btnAddCopy);
+            popup.draw(txtAddCopy);
+        }
         popup.draw(btnSave); popup.draw(txtSave); popup.draw(txtErr);
         popup.display();
     }
@@ -1026,13 +1221,13 @@ DauSach* FormNhapSach(const Font &font, bool modeEdit, DauSach* dataEdit = NULL)
 // --- LOGIC WRAPPER CHO SFML ---
 
 // 1. Thêm đầu sách vào mảng và tự tạo các bản sao sách con
-void FormThemDauSach(DS_DauSach &ds, DauSach* p) {
+void FormThemDauSach(const Font &font,DS_DauSach &ds, DauSach* p) {
     if (ds->n >= MAX_DAUSACH) return;
     
     // Check trùng ISBN
     for (int i=0; i<ds->n; i++) {
         if (ds->nodes[i]->ISBN == p->ISBN) {
-            cout << "Loi: Trung ISBN!" << endl; // Có thể hiện thông báo GUI
+            ShowMessage(font, L"Lỗi: Trùng ISBN!");
             return;
         }
     }
@@ -1050,14 +1245,13 @@ void FormThemDauSach(DS_DauSach &ds, DauSach* p) {
         
         newSach->data.MASACH = MaSach;
         newSach->data.trangthai = 0; 
-        newSach->data.vitri = "Ke chinh"; // Mặc định (có thể làm form chọn nếu muốn)
-        
+        newSach->data.vitri = randomVitrisach();
         // Insert Head
         newSach->next = p->dms;
         p->dms = newSach;
     }
 
-    // Chèn vào danh sách tuyến tính (có sắp xếp theo Tên)
+    // Chèn vào danh sách tuyến tính (có sắp xếp theo Tên dùng insertion sort)
     int pos = ds->n;
     for (int i = 0; i < ds->n; i++) {
         if (p->TENSACH < ds->nodes[i]->TENSACH) {
@@ -1073,35 +1267,87 @@ void FormThemDauSach(DS_DauSach &ds, DauSach* p) {
 }
 
 // 2. Xóa đầu sách
-void FormXoaDauSach(DS_DauSach &ds, string isbn) {
-    int pos = -1;
-    for(int i=0; i<ds->n; i++) if(ds->nodes[i]->ISBN == isbn) { pos = i; break; }
-    
-    if (pos == -1) return; // Khong tim thay
-    
-    // Check xem có sách đang mượn không
-    SACH p = ds->nodes[pos]->dms;
-    while(p) {
-        if (p->data.trangthai == 1) return; // Đang có người mượn -> Cấm xóa
+void FormXoaDauSach(const Font &font, DS_DauSach & ds_dausach, string isbn_can_xoa){
+    int vi_tri_xoa = -1;
+    // Tìm vị trí của đầu sách cần xóa dựa trên ISBN
+    for (int i = 0; i < ds_dausach->n; i++) {
+        if (ds_dausach->nodes[i]->ISBN == isbn_can_xoa) {
+            vi_tri_xoa = i;
+            break;
+        }
+    }
+    // Nếu không tìm thấy
+    if (vi_tri_xoa == -1){
+        ShowMessage(font, L"Lỗi: Không tìm thấy ISBN này!");
+        return;
+    } 
+    // Kiểm tra xem có sách nào đang được mượn không
+    bool dang_duoc_muon = false;
+    SACH p = ds_dausach->nodes[vi_tri_xoa]->dms;
+    while (p != NULL) {
+        if (p->data.trangthai == 1) { // 1 = đã mượn
+            dang_duoc_muon = true;
+            break;
+        }
         p = p->next;
     }
 
-    // Xóa bộ nhớ các sách con
-    SACH temp = ds->nodes[pos]->dms;
-    while(temp) {
-        SACH del = temp;
-        temp = temp->next;
-        delete del;
+    // Nếu đang có sách được mượn, không cho xóa
+    if (dang_duoc_muon){
+        ShowMessage(font, L"Lỗi: Sách đang được mượn, không thể xoá!\n Vui lòng trả hết sách để xoá");
+        return;
     }
-    delete ds->nodes[pos];
 
-    // Dồn mảng
-    for(int i=pos; i<ds->n-1; i++) ds->nodes[i] = ds->nodes[i+1];
-    ds->n--;
+    // Nếu không, tiến hành xóa
+    String tenSach = sf::String::fromUtf8(ds_dausach->nodes[vi_tri_xoa]->TENSACH.begin(), ds_dausach->nodes[vi_tri_xoa]->TENSACH.end());
+    String thongBao = L"Bạn có chắc muốn xóa đầu sách:\n" + tenSach + L"\n(Dữ liệu sẽ mất vĩnh viễn)";
+    if (ShowConfirm(font, thongBao)) {
+        // --- NẾU NGƯỜI DÙNG BẤM "ĐỒNG Ý" ---
+        
+        // Thực hiện xóa bộ nhớ danh sách liên kết con
+        SACH temp = ds_dausach->nodes[vi_tri_xoa]->dms;
+        while(temp) {
+            SACH del = temp;
+            temp = temp->next;
+            delete del;
+        }
+        // Xóa node đầu sách
+        delete ds_dausach->nodes[vi_tri_xoa];
+
+        // Dồn mảng (Shift array)
+        for(int i = vi_tri_xoa; i < ds_dausach->n - 1; i++) {
+            ds_dausach->nodes[i] = ds_dausach->nodes[i+1];
+        }
+        ds_dausach->n--;
+
+        ShowMessage(font, L"Đã xóa thành công!");
+    } else {
+        // Không làm gì cả, chỉ thoát ra
+    }
+    
+    // Giải phóng danh sách các sách con 
+    SACH current_sach = ds_dausach->nodes[vi_tri_xoa]->dms;
+    while (current_sach != NULL) {
+        SACH temp = current_sach;
+        current_sach = current_sach->next;
+        delete temp;
+    }
+    delete ds_dausach->nodes[vi_tri_xoa];
+
+    // Dịch chuyển các phần tử còn lại trong mảng nodes[] để lấp chỗ trống
+    for (int i = vi_tri_xoa; i < ds_dausach->n - 1; i++) {
+        ds_dausach->nodes[i] = ds_dausach->nodes[i + 1];
+    }
+
+    // Giảm số lượng đầu sách
+    ds_dausach->n--;
+    ds_dausach->nodes[ds_dausach->n] = NULL; 
+
+    ShowMessage(font, L"Đã xoá thành công!");
+    
 }
-
 // 3. Thêm bản sao (Thêm 1 cuốn vào đầu sách đã có)
-void FormThemBanSao(DS_DauSach &ds, string isbn, int soLuongThem) {
+void ThemBanSao(DS_DauSach &ds, string isbn, int soLuongThem) {
     int pos = -1;
     for(int i=0; i<ds->n; i++) if(ds->nodes[i]->ISBN == isbn) { pos = i; break; }
     if (pos == -1) return;
@@ -1115,13 +1361,224 @@ void FormThemBanSao(DS_DauSach &ds, string isbn, int soLuongThem) {
         
         newSach->data.MASACH = ms;
         newSach->data.trangthai = 0;
-        newSach->data.vitri = "Ke kho";
+        newSach->data.vitri = randomVitrisach();
         
         newSach->next = book->dms;
         book->dms = newSach;
         book->slsach++;
     }
 }
+
+void FormDieuChinhSach(const Font &font, DS_DauSach &ds, string isbn) {
+    
+    // 1. Tìm sách để lấy dữ liệu cũ
+    DauSach* oldData = NULL;
+    int idx = -1;
+    
+    // Sử dụng biến 'ds' được truyền vào thay vì 'dsdausach'
+    for (int i = 0; i < ds->n; i++) {
+        if (ds->nodes[i]->ISBN == isbn) {
+            oldData = ds->nodes[i];
+            idx = i;
+            break;
+        }
+    }
+
+    // Nếu tìm thấy sách
+    if (oldData != NULL) {
+        int slThem = 0;
+        // Mở Form nhập liệu với dữ liệu cũ (modeEdit = true)
+        DauSach* newData = FormNhapSach(font, true, slThem, oldData);
+        
+        // Nếu người dùng bấm Lưu (newData != NULL)
+        if (newData != NULL) {
+            
+            // Kiểm tra xem Tên Sách có thay đổi không
+            bool tenThayDoi = (oldData->TENSACH != newData->TENSACH);
+
+            // Cập nhật thông tin (Trừ ISBN và Số lượng bản sao)
+            oldData->TENSACH = newData->TENSACH;
+            oldData->TACGIA = newData->TACGIA;
+            oldData->NAMXUATBAN = newData->NAMXUATBAN;
+            oldData->SOTRANG = newData->SOTRANG;
+            oldData->THELOAI = newData->THELOAI;
+            // --- XỬ LÝ THÊM BẢN SAO NẾU CÓ ---
+            if (slThem > 0) {
+                // Gọi hàm thêm bản sao có sẵn của bạn
+                // Lưu ý: FormThemBanSao trong code cũ của bạn nhận vào ISBN và số lượng
+                ThemBanSao(ds, oldData->ISBN, slThem);
+            }
+
+            // Xóa biến tạm newData vì đã copy xong dữ liệu
+            delete newData; 
+
+            // --- LOGIC SẮP XẾP LẠI NẾU ĐỔI TÊN ---
+            if (tenThayDoi) {
+                // 1. Lưu con trỏ sách hiện tại
+                DauSach* pCurrent = ds->nodes[idx];
+
+                // 2. Xóa sách khỏi vị trí cũ (Dồn mảng sang trái)
+                for (int i = idx; i < ds->n - 1; i++) {
+                    ds->nodes[i] = ds->nodes[i + 1];
+                }
+                ds->n--; // Giảm số lượng tạm thời
+
+                // 3. Tìm vị trí mới thích hợp (Insertion Sort)
+                int newPos = ds->n;
+                for (int i = 0; i < ds->n; i++) {
+                    if (pCurrent->TENSACH < ds->nodes[i]->TENSACH) {
+                        newPos = i;
+                        break;
+                    }
+                }
+
+                // 4. Dồn mảng sang phải để tạo chỗ trống tại newPos
+                for (int i = ds->n; i > newPos; i--) {
+                    ds->nodes[i] = ds->nodes[i - 1];
+                }
+
+                // 5. Chèn sách vào vị trí mới
+                ds->nodes[newPos] = pCurrent;
+                ds->n++; // Tăng lại số lượng
+            }
+        }
+    }
+}
+
+void FormHienThiThongTinSach(DauSach* d, const Font &font) {
+    if (d == NULL) return;
+
+    // Kích thước cửa sổ
+    float wW = 1280.f;
+    float wH = 1000.f; 
+    RenderWindow popup(VideoMode({(unsigned int)wW, (unsigned int)wH}), L"Chi Tiết Sách", Style::Titlebar | Style::Close);
+    popup.setFramerateLimit(60);
+
+    // --- PHẦN 1: TIÊU ĐỀ & THÔNG TIN ---
+    Text txtTitle(font), txtInfo(font);
+    
+    // 1. Tên sách
+    txtTitle.setString(sf::String::fromUtf8(d->TENSACH.begin(), d->TENSACH.end()));
+    txtTitle.setCharacterSize(36);
+    txtTitle.setFillColor(Color::Yellow);
+    txtTitle.setStyle(Text::Bold);
+    FloatRect textRect = txtTitle.getLocalBounds();
+    txtTitle.setOrigin({textRect.size.x / 2.0f, 0});
+    txtTitle.setPosition({wW / 2.0f, 30.f});
+
+    // 2. Thông tin chi tiết
+    txtInfo.setCharacterSize(22);
+    txtInfo.setFillColor(Color::White);
+    string infoStr = "ISBN: " + d->ISBN + "\n\n" +
+                     "Tác giả: " + d->TACGIA + "\n\n" +
+                     "Thể loại: " + d->THELOAI + "\n\n" +
+                     "Năm xuất bản: " + to_string(d->NAMXUATBAN) + "\n\n" +
+                     "Tổng số bản sao: " + to_string(d->slsach) + "  |  Số lượt mượn: " + to_string(d->slm);
+    txtInfo.setString(sf::String::fromUtf8(infoStr.begin(), infoStr.end()));
+    float startX = 150.f;
+    txtInfo.setPosition({startX, 100.f}); 
+
+    // --- PHẦN 2: BẢNG DỮ LIỆU ---
+    float currentY = 420.f;
+
+    // Đường kẻ
+    RectangleShape line(Vector2f(wW - 300.f, 2.f)); 
+    line.setPosition({startX, currentY}); 
+    line.setFillColor(Color(100, 100, 100));
+
+    // Tiêu đề bảng
+    Text txtTableHeader(font);
+    txtTableHeader.setString(L"DANH SÁCH MÃ SÁCH TRONG THƯ VIỆN:");
+    txtTableHeader.setCharacterSize(20);
+    txtTableHeader.setFillColor(Color::Cyan);
+    txtTableHeader.setPosition({startX, currentY + 20.f}); 
+
+    // Bảng (TableDisplay)
+    // Giảm xuống 10 dòng để chừa chỗ cho nút bấm ở dưới
+    TableDisplay table(startX, currentY + 60.f, 8, "C:/Windows/Fonts/segoeui.ttf"); 
+
+    vector<string> headers = {"STT", "MÃ SÁCH", "TRẠNG THÁI", "VỊ TRÍ"};
+    vector<int> widths = {6, 25, 35, 20}; 
+    table.setHeaders(headers, widths);
+
+    // Load dữ liệu
+    SACH p = d->dms;
+    int stt = 0;
+    while (p != NULL) {
+        vector<string> row;
+        row.push_back(to_string(++stt));
+        row.push_back(p->data.MASACH);
+        string tt;
+        if (p->data.trangthai == 0) tt = "Cho mượn được";
+        else if (p->data.trangthai == 1) tt = "Đã có độc giả mượn";
+        else tt = "Đã thanh lý";
+        row.push_back(tt);
+        row.push_back(p->data.vitri);
+        table.addRow(row);
+        p = p->next;
+    }
+
+    // --- PHẦN 3: NÚT PHÂN TRANG (MỚI THÊM) ---
+    // Tính toán vị trí nút: Nằm dưới bảng. 
+    // Bảng bắt đầu Y=480, cao khoảng 400px (10 dòng) => Kết thúc ~880.
+    // Đặt nút ở Y = 920 là đẹp.
+    float btnY = 920.f;
+    
+    Button btnPrev(startX, btnY, 120.f, 40.f, "<< TRƯỚC", font, Color(100, 100, 100));
+    // Nút sau cách nút trước 140px
+    Button btnNext(startX + 140.f, btnY, 120.f, 40.f, "SAU >>", font, Color(100, 100, 100));
+
+    // --- VÒNG LẶP ---
+    while (popup.isOpen()) {
+        // Cập nhật hiệu ứng hover chuột cho nút
+        Vector2i pixelPos = Mouse::getPosition(popup);
+        Vector2f mousePos((float)pixelPos.x, (float)pixelPos.y);
+        
+        btnPrev.update(mousePos);
+        btnNext.update(mousePos);
+
+        while (const optional event = popup.pollEvent()) {
+            if (event->is<Event::Closed>()) popup.close();
+            
+            // Xử lý bàn phím
+            if (const auto* key = event->getIf<Event::KeyPressed>()) {
+                if (key->code == Keyboard::Key::Escape) popup.close();
+                if (key->code == Keyboard::Key::PageUp) table.prevPage();
+                if (key->code == Keyboard::Key::PageDown) table.nextPage();
+            }
+
+            // Xử lý Click chuột vào nút phân trang
+            if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
+                if (mouseBtn->button == Mouse::Button::Left) {
+                    // Kiểm tra nút TRƯỚC
+                    if (btnPrev.isClicked(mousePos)) {
+                        table.prevPage();
+                    }
+                    // Kiểm tra nút SAU
+                    if (btnNext.isClicked(mousePos)) {
+                        table.nextPage();
+                    }
+                }
+            }
+        }
+
+        popup.clear(Color(30, 32, 40));
+
+        popup.draw(txtTitle);
+        popup.draw(txtInfo);
+        popup.draw(line);
+        popup.draw(txtTableHeader);
+        
+        table.draw(popup);
+        
+        // Vẽ 2 nút phân trang
+        btnPrev.draw(popup);
+        btnNext.draw(popup);
+        
+        popup.display();
+    }
+}
+
 void loadDauSachToTable(DS_DauSach &ds, TableDisplay &table) {
     table.clear();
     if (ds == NULL || ds->n == 0) return;
@@ -1183,123 +1640,8 @@ void loadMuonTraToTable(MT head, TableDisplay &table,string ten,int x) {
             table.addRow(emptyRow);
     }
 }
-// Hàm hiển thị cửa sổ danh sách bản sao của 1 đầu sách
-void FormXemChiTietBanSao(DauSach* d, const Font &font) {
-    if (d == NULL) return;
 
-    // 1. Tạo cửa sổ Popup
-    RenderWindow popup(VideoMode({800, 600}), "Chi Tiet Ban Sao: " + d->ISBN, Style::Titlebar | Style::Close);
-    popup.setFramerateLimit(60);
 
-    // 2. Tạo bảng hiển thị
-    // Đường dẫn font bạn nhớ sửa lại nếu dùng font khác
-    TableDisplay table(30.f, 100.f, 10, "C:/Windows/Fonts/segoeui.ttf"); 
-
-    // Cấu hình cột cho bảng chi tiết
-    vector<string> headers = {"STT", "MÃ SÁCH", "TRẠNG THÁI", "VỊ TRÍ"};
-    vector<int> widths = {5, 20, 20, 20};
-    table.setHeaders(headers, widths);
-
-    // 3. Load dữ liệu từ danh sách liên kết (d->dms) vào bảng
-    SACH p = d->dms;
-    int stt = 0;
-    while (p != NULL) {
-        vector<string> row;
-        row.push_back(to_string(++stt));
-        row.push_back(p->data.MASACH);
-        
-        // Xử lý trạng thái ra chữ tiếng Việt
-        string tt;
-        if (p->data.trangthai == 0) tt = "Được mượn";
-        else if (p->data.trangthai == 1) tt = "Đã mượn";
-        else tt = "Đã thanh lý";
-        row.push_back(tt);
-
-        row.push_back(p->data.vitri);
-        
-        table.addRow(row);
-        p = p->next;
-    }
-
-    // Tiêu đề to ở trên
-    Text title(font);
-    title.setString(sf::String::fromUtf8(string("DANH SÁCH BẢN SAO: " + d->TENSACH).begin(), string("DANH SÁCH BẢN SAO: " + d->TENSACH).end()));
-    title.setCharacterSize(20);
-    title.setFillColor(Color::Yellow);
-    title.setPosition(Vector2f(30.f, 30.f));
-
-    // Vòng lặp cửa sổ popup
-    while (popup.isOpen()) {
-        while (const optional event = popup.pollEvent()) {
-            if (event->is<Event::Closed>()) popup.close();
-            
-            // Hỗ trợ cuộn chuột hoặc phím trang cho bảng popup
-            if (const auto* key = event->getIf<Event::KeyPressed>()) {
-                if (key->code == Keyboard::Key::Escape) popup.close();
-                if (key->code == Keyboard::Key::PageUp) table.prevPage();
-                if (key->code == Keyboard::Key::PageDown) table.nextPage();
-            }
-        }
-
-        popup.clear(Color(40, 40, 45)); // Màu nền tối
-        popup.draw(title);
-        table.draw(popup);
-        popup.display();
-    }
-}
-void ShowMessage(const Font& font, String noiDung) {
-    // 1. Tạo cửa sổ nhỏ 400x200
-    RenderWindow msgBox(VideoMode({450, 200}), L"Thông Báo", Style::Titlebar | Style::Close);
-    msgBox.setFramerateLimit(60);
-
-    // 2. Nội dung thông báo
-    Text txtContent(font);
-    txtContent.setString(noiDung);
-    txtContent.setCharacterSize(18);
-    txtContent.setFillColor(Color::White);
-    
-    // Căn giữa nội dung
-    FloatRect textRect = txtContent.getLocalBounds();
-    txtContent.setOrigin({textRect.size.x / 2.0f, textRect.size.y / 2.0f});
-    txtContent.setPosition({225.f, 80.f}); // Giữa cửa sổ (450/2)
-
-    // 3. Nút OK
-    RectangleShape btnOK({100.f, 35.f});
-    btnOK.setPosition({175.f, 140.f}); // Căn giữa (450-100)/2
-    btnOK.setFillColor(Color(0, 120, 215)); // Xanh dương
-
-    Text txtBtn(font);
-    txtBtn.setString("OK");
-    txtBtn.setCharacterSize(18);
-    FloatRect btnRect = txtBtn.getLocalBounds();
-    txtBtn.setOrigin({btnRect.size.x / 2.0f, btnRect.size.y / 2.0f});
-    txtBtn.setPosition({225.f, 152.f});
-
-    // 4. Vòng lặp chờ bấm OK
-    while (msgBox.isOpen()) {
-        while (const optional event = msgBox.pollEvent()) {
-            // Đóng khi bấm X
-            if (event->is<Event::Closed>()) msgBox.close();
-            // Đóng khi Click nút OK
-            if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
-                if (mouseBtn->button == Mouse::Button::Left) {
-                    Vector2f mousePos(static_cast<float>(mouseBtn->position.x), 
-                                      static_cast<float>(mouseBtn->position.y));
-                    
-                    if (btnOK.getGlobalBounds().contains(mousePos)) {
-                        msgBox.close();
-                    }
-                }
-            }
-        }
-
-        msgBox.clear(Color(50, 50, 50)); // Nền xám đậm
-        msgBox.draw(txtContent);
-        msgBox.draw(btnOK);
-        msgBox.draw(txtBtn);
-        msgBox.display();
-    }
-}
 // Hàm tìm kiếm độc giả trong cây để lấy danh sách mượn
 void timVaLoadMuonTra(TreeDocGia t, int mathe, TableDisplay &table) {
     if (t == NULL) return;
@@ -1458,7 +1800,7 @@ int main() {
     TreeDocGia dsdocgia = NULL;
     TreeDocGia dshoten = NULL;
     DS_TheDocgia dsquahan ;
-
+    srand(time(NULL));
     // Load dữ liệu từ file
     ifstream Fout("D:/code/thedocgiadata.txt");
     if (Fout.is_open()) {
@@ -1547,8 +1889,9 @@ int main() {
     Button btnSach_Them(x1, actionY, actionW, actionH, "THÊM SÁCH", font, colBtnAction);
     Button btnSach_Xoa(x2, actionY, actionW, actionH, "XOÁ SÁCH", font, colBtnAction);
     Button btnSach_DieuChinh(x3, actionY, actionW, actionH, "SỬA THÔNG TIN", font, colBtnAction);
-    Button btnSach_ThemBanSao(x4, actionY, actionW, actionH, "THÊM BẢN SAO", font, colBtnAction);
-    Button btnSach_ChiTietBanSao(x5, actionY, actionW, actionH, "CHI TIẾT BẢN SAO", font, colBtnAction);
+    Button btnSach_ThongTinSach(x4, actionY, actionW, actionH, "THÔNG TIN SÁCH", font, colBtnAction);
+    Button btnSach_InTheoTheLoai(x5, actionY, actionW, actionH, "HIỆN THEO THỂ LOẠI", font, colBtnAction);
+    Button btnSach_InTheoTen(x6, actionY, actionW, actionH, "HIỆN THEO TÊN", font, colBtnAction);
 
     // --- NHÓM MƯỢN TRẢ (Tab MuonTra) ---
     // Sắp xếp ngang: Xem Chi Tiết -> Trả Sách
@@ -1630,8 +1973,8 @@ int main() {
         }
         else if (currentTab == TAB_DAUSACH) {
             btnSach_Them.update(mousePos); btnSach_Xoa.update(mousePos); 
-            btnSach_DieuChinh.update(mousePos); btnSach_ThemBanSao.update(mousePos);
-            btnSach_ChiTietBanSao.update(mousePos);
+            btnSach_DieuChinh.update(mousePos); btnSach_ThongTinSach.update(mousePos);
+            btnSach_InTheoTheLoai.update(mousePos); btnSach_InTheoTen.update(mousePos);
         }
         else if (currentTab == TAB_MUONTRA) {
             btnMuon_in.update(mousePos); btnMuon_Tra.update(mousePos);btnMuon_Muon.update(mousePos);btnMuon_QUAHAN.update(mousePos);
@@ -1651,14 +1994,19 @@ int main() {
                 if (mouseBtn->button == Mouse::Button::Left) {
                     Vector2f clickPos(static_cast<float>(mouseBtn->position.x), static_cast<float>(mouseBtn->position.y));
                     if(btnSaveFile.isClicked(clickPos)){
-                        ofstream f("D:/code/thedocgiadata.txt");
-                        savefiletree(dsdocgia,f);
-                        f.close();
-                        ofstream FinSach("D:/code/danhmucsachdata.txt");
-                        savefilesach(dsdausach,FinSach);
-                        FinSach.close();
-                        String thongbao = L"LƯU FILE THÀNH CÔNG!";
-                        ShowMessage(font,thongbao);
+                        String thongbao1 = L"Bạn có chắc muốn lưu file?"; 
+                        if(ShowConfirm(font, thongbao1)){
+                            ofstream f("D:/code/thedocgiadata.txt");
+                            savefiletree(dsdocgia,f);
+                            f.close();
+                            ofstream FinSach("D:/code/danhmucsachdata.txt");
+                            savefilesach(dsdausach,FinSach);
+                            FinSach.close();
+                            String thongbao2 = L"LƯU FILE THÀNH CÔNG!";
+                            ShowMessage(font,thongbao2);
+                        }else{
+
+                        }
                     }
                     
                     // -- XỬ LÝ CLICK TAB --
@@ -1721,9 +2069,10 @@ int main() {
                     else if (currentTab == TAB_DAUSACH) {
                         // 1. THEM DAU SACH
                         if (btnSach_Them.isClicked(clickPos)) {
-                            DauSach* pMoi = FormNhapSach(font, false); // false = mode Add
+                            int slThem = 0;
+                            DauSach* pMoi = FormNhapSach(font, false, slThem); // false = mode Add
                             if (pMoi != NULL) {
-                                FormThemDauSach(dsdausach, pMoi);
+                                FormThemDauSach(font, dsdausach, pMoi);
                                 RefreshList();
                             }
                         }
@@ -1731,75 +2080,61 @@ int main() {
                         if (btnSach_Xoa.isClicked(clickPos)) {
                             string isbn = FormNhapChuoi(font, "NHẬP ISBN CẦN XOÁ:", "ISBN:");
                             if (!isbn.empty()) {
-                                FormXoaDauSach(dsdausach, isbn);
+                                FormXoaDauSach(font,dsdausach, isbn);
                                 RefreshList();
                             }
                         }
                         // 3. SUA THONG TIN
                         if (btnSach_DieuChinh.isClicked(clickPos)) {
                             string isbn = FormNhapChuoi(font, "NHẬP ISBN CẦN SỬA:", "ISBN:");
-                            if (!isbn.empty()) {
-                                // Tìm sách để lấy dữ liệu cũ
-                                DauSach* oldData = NULL;
-                                int idx = -1;
-                                for(int i=0; i<dsdausach->n; i++) {
-                                    if(dsdausach->nodes[i]->ISBN == isbn) {
-                                        oldData = dsdausach->nodes[i];
-                                        idx = i;
-                                        break;
-                                    }
-                                }
-                                
-                                if (oldData != NULL) {
-                                    DauSach* newData = FormNhapSach(font, true, oldData); // true = mode Edit
-                                    if (newData != NULL) {
-                                        // Cập nhật lại thông tin
-                                        oldData->TENSACH = newData->TENSACH;
-                                        oldData->TACGIA = newData->TACGIA;
-                                        oldData->NAMXUATBAN = newData->NAMXUATBAN;
-                                        oldData->SOTRANG = newData->SOTRANG;
-                                        oldData->THELOAI = newData->THELOAI;
-                                        
-                                        // Nếu tên đổi, cần sort lại (đơn giản nhất là xóa đi add lại con trỏ, 
-                                        // nhưng ở đây tạm thời ta chỉ cập nhật giá trị để tránh lỗi pointer)
-                                        delete newData; // Xóa object tạm
-                                        RefreshList();
-                                    }
-                                }
-                            }
-                        }
-                        // 4. THEM BAN SAO
-                        if (btnSach_ThemBanSao.isClicked(clickPos)) {
-                            string isbn = FormNhapChuoi(font, "NHẬP ISBN ĐỂ THÊM BẢN SAO:", "ISBN:");
-                            if (!isbn.empty()) {
-                                // Mặc định thêm 1 cuốn, nếu muốn nhiều hơn có thể làm form nhập số
-                                FormThemBanSao(dsdausach, isbn, 1);
+                            if (!isbn.empty()){
+                                FormDieuChinhSach(font, dsdausach, isbn);
                                 RefreshList();
                             }
                         }
-                        // --- CHỨC NĂNG MỚI: CHI TIẾT BẢN SAO ---
-                        if (btnSach_ChiTietBanSao.isClicked(clickPos)) {
-                            // 1. Hỏi người dùng nhập ISBN
-                            string isbn = FormNhapChuoi(font, "NHẬP ISBN ĐỂ XEM CHI TIẾT:", "ISBN:");
+                        //Thông tin sách theo tên
+                        if (btnSach_ThongTinSach.isClicked(clickPos)) {
+                            // 1. Nhập tên sách cần tìm
+                            string tenNhap = FormNhapChuoi(font, "NHẬP TÊN SÁCH CẦN TÌM", "TÊN SÁCH");
                             
-                            if (!isbn.empty()) {
-                                // 2. Tìm đầu sách trong mảng
-                                DauSach* pTim = NULL;
+                            if (!tenNhap.empty()) {
+                                // 2. Chuẩn hóa tên sách (để so sánh chính xác)
+                                string tenChuanHoa = "";
+                                stringdg(tenNhap, tenChuanHoa); // Hàm chuẩn hóa từ mylib.h
+
+                                // 3. Tìm kiếm tuyến tính trong danh sách đầu sách
+                                DauSach* ketQua = NULL;
                                 for (int i = 0; i < dsdausach->n; i++) {
-                                    if (dsdausach->nodes[i]->ISBN == isbn) {
-                                        pTim = dsdausach->nodes[i];
+                                    // So sánh tên sách
+                                    if (dsdausach->nodes[i]->TENSACH == tenChuanHoa) {
+                                        ketQua = dsdausach->nodes[i];
                                         break;
                                     }
                                 }
 
-                                // 3. Nếu tìm thấy thì hiện Popup, không thì báo lỗi (hoặc lờ đi)
-                                if (pTim != NULL) {
-                                    FormXemChiTietBanSao(pTim, font);
+                                // 4. Hiển thị kết quả
+                                if (ketQua != NULL) {
+                                    // Tìm thấy -> Gọi form hiển thị đầy đủ thông tin vừa viết
+                                    FormHienThiThongTinSach(ketQua, font);
                                 } else {
-                                    // Có thể dùng Form thông báo lỗi nếu muốn, hoặc cout tạm
-                                    cout << "Không tìm thấy sách có ISBN: " << isbn << endl;
+                                    // Không tìm thấy
+                                    String tb = L"Không tìm thấy sách " + sf::String::fromUtf8(tenChuanHoa.begin(), tenChuanHoa.end());
+                                    ShowMessage(font, tb);
                                 }
                             }
+                        }
+                        // 5. HIỆN THEO THỂ LOẠI
+                        if (btnSach_InTheoTheLoai.isClicked(clickPos)) {
+                            SortTheLoai(dsdausach);// Gọi hàm Insertion Sort Thể Loại [cite: 1]
+                            RefreshList(); 
+                            ShowMessage(font, L"Đã sắp xếp theo: Thể Loại");
+                        }
+
+                        // 6. HIỆN THEO TÊN
+                        if (btnSach_InTheoTen.isClicked(clickPos)) {
+                            SortTen(dsdausach);// Gọi hàm Insertion Sort Tên [cite: 1]
+                            RefreshList(); 
+                            ShowMessage(font, L"Đã sắp xếp theo: Tên Sách");
                         }
                     }
                     else if (currentTab == TAB_MUONTRA) {
@@ -1864,8 +2199,8 @@ int main() {
         }
         else if (currentTab == TAB_DAUSACH) {
             btnSach_Them.draw(Window); btnSach_Xoa.draw(Window); 
-            btnSach_DieuChinh.draw(Window); btnSach_ThemBanSao.draw(Window);
-            btnSach_ChiTietBanSao.draw(Window);
+            btnSach_DieuChinh.draw(Window); btnSach_ThongTinSach.draw(Window);
+            btnSach_InTheoTheLoai.draw(Window); btnSach_InTheoTen.draw(Window);
         }
         else if (currentTab == TAB_MUONTRA) {
             btnMuon_in.draw(Window); btnMuon_Tra.draw(Window);btnMuon_Muon.draw(Window);btnMuon_QUAHAN.draw(Window);
