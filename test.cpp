@@ -564,7 +564,7 @@ TreeDocGia FormTaoDocGia(const Font &font,TreeDocGia & b) {
                         txtError.setString("");
                         // Tính sum (từ code cũ của bạn)
                         if (phaiSelection == 1) strcpy(a.PHAI, "Nam");
-                        else strcpy(a.PHAI, "Nũ");
+                        else strcpy(a.PHAI, "Nữ");
                         srand(time(0));
                         int mathe = 1000 + rand() % (10000 - 1000);
                         while(CheckMaThe(b,mathe)==true){
@@ -751,7 +751,7 @@ bool FormSuaDocGia(const Font &font, TheDocGia &data) {
 
     Text txtSelected(font);
     // Kiểm tra giới tính cũ để hiển thị đúng
-    int phaiSelection = (strcmp(data.PHAI, "Nam") == 0) ? 1 : 2;
+    int phaiSelection =1;
     Button btnNam(50.f, 235.f, 100.f, 40.f, "NAM", font, Color(100, 100, 100));
     Button btnNu(170.f, 235.f, 100.f, 40.f, "NỮ", font, Color(100, 100, 100));
     auto UpdateGenderColor = [&]() {
@@ -819,6 +819,10 @@ bool FormSuaDocGia(const Font &font, TheDocGia &data) {
                         }
 
                         // --- CẬP NHẬT DỮ LIỆU MỚI VÀO BIẾN data ---
+                        if(phaiSelection == 1){
+                            strcpy(data.PHAI,"Nam");
+                        }
+                        else{strcpy(data.PHAI,"Nữ");}
                         data.HO = tempCheck.HO;
                         data.TEN = tempCheck.TEN;
                         // TÍNH LẠI SUM
@@ -1880,7 +1884,7 @@ int main() {
     Button btnAdd(x1, actionY, actionW, actionH, "THÊM ĐỘC GIẢ", font, colBtnAction);
     Button btnDel(x2, actionY, actionW, actionH, "XOÁ ĐỘC GIẢ", font, colBtnAction);
     Button btnEdit(x3, actionY, actionW, actionH, "HIỆU CHỈNH", font, colBtnAction);
-    Button btnlock(x4, actionY, actionW, actionH, "KHOÁ / MỞ KHOÁ", font, colBtnAction);
+    Button btnlock(x4, actionY, actionW, actionH, "MỞ KHOÁ", font, colBtnAction);
     Button btnintheoten(x5, actionY, actionW, actionH, "HIỆN THEO TÊN", font, colBtnAction);
     Button btnintheomathe(x6, actionY, actionW, actionH, "HIỆN THEO MÃ THẺ", font, colBtnAction);
 
@@ -2032,9 +2036,14 @@ int main() {
                             }
                         }
                         if (btnDel.isClicked(clickPos)) {
+                            int s=0;
                             int maXoa = FormNhapMaXoa(font, dsdocgia, L"NHẬP MÃ CẦN XÓA:");
                             if (maXoa != -1) {
-                                xoathe(dsdocgia, maXoa);
+                                xoathe(dsdocgia, maXoa,s);
+                                xoathe(dshoten,maXoa,s);
+                                if(s==-1){
+                                    ShowMessage(font,L"Vui Lòng Trả Sách Trước Khi Xóa Thẻ");
+                                }
                                 RefreshList();
                             }
                         }
@@ -2044,14 +2053,16 @@ int main() {
                                 TheDocGia dgMoi; dgMoi.MATHE = maSua;
                                 if(FormSuaDocGia(font, dgMoi)) {
                                     dieuchinhmathe(dsdocgia, dgMoi);
+                                    dieuchinhmathe(dshoten,dgMoi);
                                     RefreshList();
                                 }
                             }
                         }
                         if (btnlock.isClicked(clickPos)) {
-                            int maKhoa = FormNhapMaXoa(font, dsdocgia, L"NHẬP MÃ CẦN KHÓA:");
+                            int maKhoa = FormNhapMaXoa(font, dsdocgia, L"NHẬP MÃ CẦN MỞ KHÓA:");
                             if (maKhoa != -1) {
-                                khoathe(dsdocgia, maKhoa);
+                                mokhoathe(dsdocgia, maKhoa);
+                                mokhoathe(dshoten,maKhoa);
                                 RefreshList();
                             }
                         }
@@ -2174,6 +2185,7 @@ int main() {
                             Date t = time();
                             dsquahan.cnt =0;
                             luudsquahan(dsdocgia,dsquahan,t);
+                            luudsquahanten(dshoten,t);
                             inquahan(dsquahan,tableDisplay);
                             
                         }  
