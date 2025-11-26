@@ -1795,6 +1795,47 @@ void inquahan(DS_TheDocgia & a,TableDisplay & b){ // câu i
         b.addRow(row);
     }
 };
+void top10book(DS_DauSach & a, TableDisplay & b){  //10 sách dc mượn nhiều nhất (j)
+    int cnt = 0;
+    DauSach tmp[10];
+    for (int i = 0; i < a->n ; ++i)
+    {    if(cnt < 10){
+         tmp[cnt].slm = a->nodes[i]->slm;
+         tmp[cnt].TENSACH = a->nodes[i]->TENSACH;
+         cnt++;
+    }
+        else {
+            for(int j = 0 ; j <cnt;++j){
+                 if(tmp[j].slm <a->nodes[i]->slm){
+                    tmp[j].slm = a->nodes[i]->slm;
+                    tmp[j].TENSACH =a->nodes[i]->TENSACH;
+                 }
+            }
+            for(int i = 0 ; i < cnt ; ++i){
+                for(int j = i +1 ; j < cnt ; ++j){
+                    if(tmp[i].slm < tmp[j].slm){
+                        DauSach temp;
+                        temp.slm = tmp[i].slm;
+                        temp.TENSACH=tmp[i].TENSACH;
+                        tmp[i].slm = tmp[j].slm;
+                        tmp[i].TENSACH=tmp[j].TENSACH;
+                        tmp[j].slm = temp.slm;
+                        tmp[j].TENSACH=temp.TENSACH;
+                    }
+                }
+            }
+        }
+    }
+    for(int i = 0 ; i < cnt; ++i){
+        vector <string> row;
+        row.push_back(to_string(i + 1));             // Cột TOP (1, 2, 3...)
+        row.push_back(a->nodes[i]->ISBN);
+        row.push_back(a->nodes[i]->TENSACH);
+        row.push_back(to_string(a->nodes[i]->slm));  // Cột Số lượt mượn
+        
+        b.addRow(row);
+    }
+};
 // ============================================================
 // HÀM MAIN - CHƯƠNG TRÌNH CHÍNH
 // ============================================================
@@ -1846,6 +1887,8 @@ int main() {
     vector<int> widthMuon = {5,10,25,25,30,12,12,15};
     vector<string> headerQuaHan = {"STT", "MÃ THẺ", "HỌ TÊN", "SỐ NGÀY QUÁ HẠN", "TRẠNG THÁI THẺ"};
     vector<int> widthQuaHan = {5, 15, 35, 15, 25};
+    vector<string> headerTop = {"TOP", "ISBN", "TÊN SÁCH", "SỐ LƯỢT MƯỢN"};
+    vector<int> widthTop = {5, 15, 40, 15};
 
     // B. MENU TAB (Trên cùng)
     float tabW = 350.f, tabH = 50.f, tabY = 50.f, tabGap = 20.f;
@@ -1903,6 +1946,7 @@ int main() {
     Button btnMuon_Tra(x2, actionY, actionW, actionH, "TRẢ SÁCH", font, colBtnAction);
     Button btnMuon_Muon(x3, actionY, actionW, actionH, "CHO MƯỢN", font, colBtnAction);
     Button btnMuon_QUAHAN(x4, actionY, actionW, actionH, "DANH SÁCH QUÁ HẠN", font, colBtnAction);
+    Button btnMuon_Top10Sach(x5, actionY, actionW, actionH, "TOP 10 SÁCH MƯỢN", font, colBtnAction);
 
     // D. NÚT PHÂN TRANG (Dưới bảng)
     // Y = 180 (start bảng) + (18 dòng * 40px) = 900 => Đặt nút ở 950
@@ -1981,7 +2025,7 @@ int main() {
             btnSach_InTheoTheLoai.update(mousePos); btnSach_InTheoTen.update(mousePos);
         }
         else if (currentTab == TAB_MUONTRA) {
-            btnMuon_in.update(mousePos); btnMuon_Tra.update(mousePos);btnMuon_Muon.update(mousePos);btnMuon_QUAHAN.update(mousePos);
+            btnMuon_in.update(mousePos); btnMuon_Tra.update(mousePos);btnMuon_Muon.update(mousePos);btnMuon_QUAHAN.update(mousePos); btnMuon_Top10Sach.update(mousePos);
         }
 
         // Xử lý sự kiện
@@ -2166,20 +2210,20 @@ int main() {
                         }
                         if (btnMuon_Muon.isClicked(clickPos)) {
                             String thongbao;
-                           string tenSach = "";
+                            string tenSach = "";
                             int maThe = -1;
-                         if(FormMuonSach(font,maThe,tenSach)){
-                          bool ketQua= muonsach(dsdausach,dsdocgia,tenSach,maThe,thongbao);
-                          ShowMessage(font, thongbao);
-                          if (ketQua== true) {
-                         if (maThe != -1) {
-                        currentViewMaThe = maThe;
-                        RefreshList(); 
-                       }
-                 }
-    }
-}                      
-                     if(btnMuon_QUAHAN.isClicked(clickPos)){
+                            if(FormMuonSach(font,maThe,tenSach)){
+                            bool ketQua= muonsach(dsdausach,dsdocgia,tenSach,maThe,thongbao);
+                            ShowMessage(font, thongbao);
+                            if (ketQua== true) {
+                                if (maThe != -1) {
+                                currentViewMaThe = maThe;
+                                RefreshList(); 
+                                }
+                            }
+                            }
+                        }                      
+                        if(btnMuon_QUAHAN.isClicked(clickPos)){
                             tableDisplay.clear();
                             tableDisplay.setHeaders(headerQuaHan,widthQuaHan);
                             Date t = time();
@@ -2187,7 +2231,11 @@ int main() {
                             luudsquahan(dsdocgia,dsquahan,t);
                             luudsquahanten(dshoten,t);
                             inquahan(dsquahan,tableDisplay);
-                            
+                        }
+                        if(btnMuon_Top10Sach.isClicked(clickPos)){
+                            tableDisplay.clear();
+                            tableDisplay.setHeaders(headerTop,widthTop);
+                            top10book(dsdausach,tableDisplay);
                         }  
                     }
                 }
@@ -2215,7 +2263,7 @@ int main() {
             btnSach_InTheoTheLoai.draw(Window); btnSach_InTheoTen.draw(Window);
         }
         else if (currentTab == TAB_MUONTRA) {
-            btnMuon_in.draw(Window); btnMuon_Tra.draw(Window);btnMuon_Muon.draw(Window);btnMuon_QUAHAN.draw(Window);
+            btnMuon_in.draw(Window); btnMuon_Tra.draw(Window);btnMuon_Muon.draw(Window);btnMuon_QUAHAN.draw(Window); btnMuon_Top10Sach.draw(Window);
         }
 
         Window.display();
