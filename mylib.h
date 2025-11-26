@@ -1,11 +1,5 @@
-#include <conio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <dos.h>
+#pragma once
 #include <string.h>
-#include <windows.h>
-#include <math.h>
-#include <limits>
 #include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,9 +18,6 @@ using namespace std;
 //const int WHITE=15;
 #define Backspace 8
 // add
-void clrscr() {
-	system("cls");
-}
 
 void chuanhoa(string & s ){
     s[0] = toupper(s[0]);
@@ -52,122 +43,6 @@ void chuanhoachuoi(string &s) {
 
     s = temp;
 }
-//Check nhap so
-long long NhapSo(const string& prompt) {
-    string input;
-    while (1) {
-        cout << prompt;
-        getline(cin, input);
-        if (input.empty()) {
-            cout << "Loi: Vui long nhap so!" << endl;
-            continue;
-        }
-        bool valid = true;
-        for (char ch : input) {
-            if (!isdigit(ch)) {
-                valid = false;
-                break;
-            }
-        }
-        if (!valid) {
-            cout << "Loi: Vui long chi nhap so!" << endl;
-            continue;
-        }
-        try {
-            long long result = stoll(input);
-            if (result < 0) {
-                cout << "Loi: So phai lon hon hoac bang 0!" << endl;
-                continue;
-            }
-            return result;
-        }
-        catch (...) {
-            cout << "Loi: So qua lon!" << endl;
-        }
-    }
-}
-
-void NhapChuoi(const string &prompt, string &end) 
-{
-    string input; 
-    end.clear();   
-
-    while (true) {
-        cout << prompt;
-        
-        
-        if (!getline(cin, input)) return; 
-
-        //Khong duoc rong
-        if (input.empty()) {
-            cout << "vui long nhap chuoi" << endl;
-            continue; 
-        }
-
-        // Chi duoc chua chu cai va khoang trang
-        bool valid = true; 
-        for (char x : input) {
-            
-            if (isspace(x)) {
-                continue; // Neu la khoang trang, bo qua, kiem tra ky tu tiep
-            }
-            if (!isalpha(x)) {
-                // Neu ky tu khong phai khoang trang VA cung khong phai chu cai
-                cout << "Vui long chi nhap tu" << endl;
-                valid = false; 
-                break;         
-            }
-        }
-
-        if (!valid) {
-            continue;
-        }
-        end = input;
-        chuanhoachuoi(end);
-        
-        return; 
-    }
-}
-
-void NhapISBN(const string& prompt, string &result) {
-    cout << prompt;
-    result.clear(); 
-
-    while (result.length() < 13) {
-        char ch = _getch();
-
-        // Kiem tra DAU CACH
-        if (ch == ' ') {
-            cout << "\nLoi: Khong duoc phep nhap dau cach! Vui long nhap lai tu dau." << endl;
-            Sleep(1000);
-            cout << prompt;
-            result.clear();
-            continue; 
-        }
-        else if (isalpha(ch)){
-            cout << "\nLoi: Khong duoc phep nhap chu! Vui long nhap lai tu dau." << endl;
-            Sleep(1000);
-            cout << prompt;
-            result.clear();
-            continue;
-        }
-        else if (ch == Backspace) { 
-            if (!result.empty()) {
-                result.erase(result.length() - 1, 1);
-                cout << "\b \b";   // Xoa ky tu tren man hinh
-            }
-        }    
-        // Xu ly CHU SO
-        else if (isdigit(ch)) {
-            result += ch; // Them so vao chuoi
-            cout << ch;     // Hien thi so do ra man hinh
-        }
-
-    }
-    cout << endl;
-    return;
-}
-
 
 void stringdg(const string& s,string &end){
     if(s.empty()){
