@@ -87,7 +87,7 @@ struct TheDocGia {
     int sum=0;
     string HO;
     string TEN;
-    char PHAI[4];
+    char PHAI[10];
     int trangthai = 1; // 0: bi khoa , 1: hoat dong;
     int sachmuon = 0 ;// max = 3;
     int quahan =0;
@@ -203,17 +203,17 @@ void xoanode2la(TreeDocGia& a,TreeDocGia &p){
         a = a->left;
     }
 };
-void xoathe(TreeDocGia& a, int x ){   // xóa thẻ trong cây
+void xoathe(TreeDocGia& a, int x,int &s ){   // xóa thẻ trong cây
         if(a==NULL){
         return ;
     }
-        if (x < a->dg.MATHE) {
-        return xoathe(a->left, x);
-    }
-    else if (x > a->dg.MATHE) {
-        return xoathe(a->right, x);
-    }
-       else{ 
+     xoathe(a->left, x,s);
+     xoathe(a->right, x,s);
+       if(a->dg.MATHE==x){ 
+        if(a->dg.sachmuon!=0){
+         s = -1;
+         return;
+     }
         if(a->left == NULL){
             TreeDocGia p = a;
             a = a->right;
@@ -246,21 +246,23 @@ void xoathe(TreeDocGia& a, int x ){   // xóa thẻ trong cây
     }
     dieuchinhmathe(a->left,tmp);
     if(a->dg.MATHE == tmp.MATHE){
-       a->dg = tmp;
-       cout << "Dieu chinh thanh cong "<<endl;
+       a->dg.HO = tmp.HO;
+       a->dg.TEN =tmp.TEN;
+       strcpy(a->dg.PHAI,tmp.PHAI);
+       a->dg.sum = tmp.sum;
        return ;
     }
     dieuchinhmathe(a->right,tmp);
 };
-void khoathe(TreeDocGia & a,int x){ // khóa thẻ
+void mokhoathe(TreeDocGia & a,int x){ // khóa thẻ
     if(a==NULL){
         return;
     }
     if ( a->dg.MATHE == x){
-        a->dg.trangthai = 0;
+        a->dg.trangthai = 1;
     }
-    khoathe(a->left,x);
-    khoathe(a->right,x);
+    mokhoathe(a->left,x);
+    mokhoathe(a->right,x);
 };
 // void indsmuontra(MT  a){   // in ds mượn trả đang mượn
 //     MT p = a;
@@ -321,7 +323,7 @@ void checkdaymt(TreeDocGia & b,Date  a){
     while (p != NULL){
         int ketqua;
         int ngaytra;
-        if(p->mt.trangthai2 ==1){
+        if(!p->mt.NgayTra.empty()){
            ketqua = tinhngay(p->mt.NgayMuon);
            ngaytra = tinhngay(p->mt.NgayTra);
        if(ngaytra-ketqua >=7){
@@ -469,6 +471,16 @@ void luudsquahan(TreeDocGia & a , DS_TheDocgia & b,Date c){
         b.list[b.cnt++] = a->dg;
      }
     luudsquahan(a->right,b,c);
+};
+void luudsquahanten(TreeDocGia & a ,Date c){
+    if(a== NULL){
+        return;
+    }
+    else{
+        checkdaymt(a,c);
+    }
+    luudsquahanten(a->left,c);
+    luudsquahanten(a->right,c);
 };
 // void inquahan(DS_TheDocgia & a){ // câu i
 //     for(int i = 0 ; i < a.cnt; i++){
