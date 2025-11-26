@@ -424,7 +424,7 @@ void checkdaymt(TreeDocGia & b,Date  a){
 //          }
 //     }
 // };
-void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
+/*void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
     int cnt = 0;
     DauSach tmp[10];
     for (int i = 0; i < a->n ; ++i)
@@ -458,7 +458,7 @@ void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
     for(int i = 0 ; i < cnt; ++i){
         // thieu in
     }
-};
+};*/
 void luudsquahan(TreeDocGia & a , DS_TheDocgia & b,Date c){
     if(a== NULL){
         return;
