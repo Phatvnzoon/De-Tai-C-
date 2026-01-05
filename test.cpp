@@ -930,8 +930,8 @@ bool FormTraSach(const Font &font, int &outMaThe, string &outMaSach, string &out
     }
     return false;
 }
-bool FormMuonSach(const Font &font, int &outMaThe, string &outTenSach) {
-    float winW = 400.f; float winH = 350.f; // Chiều cao vừa đủ cho 2 ô
+bool FormMuonSach(const Font &font, int &outMaThe, string &outTenSach,string & masach) {
+    float winW = 400.f; float winH = 450.f; // Chiều cao vừa đủ cho 2 ô
     RenderWindow popup(VideoMode({(unsigned int)winW, (unsigned int)winH}), L"Mượn Sách", Style::Titlebar | Style::Close);
     popup.setFramerateLimit(60);
 
@@ -940,20 +940,21 @@ bool FormMuonSach(const Font &font, int &outMaThe, string &outTenSach) {
 
     // 2. Ô NHẬP TÊN SÁCH
     InputField inputTenSach(50.f, 150.f, 300.f, 35.f, "TÊN SÁCH:", font);
+    InputField inputMaSach(50.f, 240.f, 300.f, 35.f, "MÃ SÁCH (ISBN):", font);
 
     // Nút Xác Nhận
     RectangleShape btnOk({120.f, 40.f});
-    btnOk.setPosition({140.f, 240.f}); 
+    btnOk.setPosition({140.f, 330.f}); 
     btnOk.setFillColor(Color(0, 100, 200)); // Màu xanh dương
     
     Text txtBtn(font); txtBtn.setString(L"XÁC NHẬN"); txtBtn.setCharacterSize(18);
     FloatRect tr = txtBtn.getLocalBounds();
     txtBtn.setOrigin({tr.size.x / 2.0f, tr.size.y / 2.0f});
-    txtBtn.setPosition({200.f, 255.f});
+    txtBtn.setPosition({200.f, 345.f});
 
     // Thông báo lỗi
     Text txtError(font); txtError.setFillColor(Color::Red); txtError.setCharacterSize(16);
-    txtError.setPosition({50.f, 200.f}); txtError.setString("");
+    txtError.setPosition({50.f, 300.f}); txtError.setString("");
 
     while (popup.isOpen()) {
         while (const optional event = popup.pollEvent()) {
@@ -964,6 +965,7 @@ bool FormMuonSach(const Font &font, int &outMaThe, string &outTenSach) {
 
             inputMaThe.handleEvent(*event, popup);
             inputTenSach.handleEvent(*event, popup);
+            inputMaSach.handleEvent(*event, popup);
 
             if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
                 if (mouseBtn->button == Mouse::Button::Left) {
@@ -988,10 +990,18 @@ bool FormMuonSach(const Font &font, int &outMaThe, string &outTenSach) {
                             inputTenSach.clear();
                             continue;
                         }
+                        string tempmasach ="";
+                        chuanhoamasach(inputMaSach.content,tempmasach);
+                        if (tempmasach.empty()) {
+                            txtError.setString(L"Lỗi: Mã sách không hợp lệ!"); 
+                            inputMaSach.clear();
+                            continue;
+                        }
 
                         // --- 3. THÀNH CÔNG: GÁN RA NGOÀI ---
                         outMaThe = tempMaThe;
                         outTenSach = tempTenSach;
+                        masach = tempmasach;
 
                         popup.close();
                         return true;
@@ -1003,6 +1013,7 @@ bool FormMuonSach(const Font &font, int &outMaThe, string &outTenSach) {
         
         inputMaThe.draw(popup);
         inputTenSach.draw(popup);
+        inputMaSach.draw(popup);
         
         popup.draw(btnOk); popup.draw(txtBtn); popup.draw(txtError);
         popup.display();
@@ -1660,16 +1671,16 @@ void timVaLoadMuonTra(TreeDocGia t, int mathe, TableDisplay &table) {
     }
 }
 // Thêm tham số: string &thongbao để hứng nội dung thay vì cout
-bool muonsach(DS_DauSach & a, TreeDocGia & b, const string s, int x, String &thongbao){
+bool muonsach(DS_DauSach & a, TreeDocGia & b, const string s,const string m, int x, String &thongbao){
     if(b == NULL){
         thongbao = L"Lỗi: Mã độc giả không tồn tại!";
         return false; 
     }
     else if(b->dg.MATHE > x){
-        return muonsach(a, b->left, s, x, thongbao); 
+        return muonsach(a, b->left, s, m, x, thongbao); 
     }
     else if(b->dg.MATHE < x){
-        return muonsach(a, b->right, s, x, thongbao); 
+        return muonsach(a, b->right, s, m, x, thongbao); 
     }
     else {
         Date t = time();
@@ -1689,7 +1700,11 @@ bool muonsach(DS_DauSach & a, TreeDocGia & b, const string s, int x, String &tho
                 SACH temp = a->nodes[i]->dms;
                 
                 while(temp != NULL){      
-                    if(temp->data.trangthai == 0){ // Tìm thấy cuốn chưa ai mượn
+                    if(temp->data.MASACH == m){ // Tìm thấy cuốn chưa ai mượn
+                        if(temp->data.trangthai!=0){
+                            thongbao =L"Sách Này Đã Có Người Mượn";
+                            return false;
+                        }
                         MT tmp = makeMT();
                         
                         tmp->mt.MASACH = temp->data.MASACH;
@@ -1713,12 +1728,12 @@ bool muonsach(DS_DauSach & a, TreeDocGia & b, const string s, int x, String &tho
                             p->next = tmp;
                         }
                         
-                        thongbao = L"Mượn Sách Thành Công " + s;
+                        thongbao = L"Mượn Sách Thành Công "+s;
                         return true; //
                     }
                     temp = temp->next;
                 }
-                thongbao = L"Sách này đã hết bản sao để mượn";
+                thongbao = L"Mã Sách Không Tồn Tại";
                 return false;
             }
         }
@@ -2211,9 +2226,10 @@ int main() {
                         if (btnMuon_Muon.isClicked(clickPos)) {
                             String thongbao;
                             string tenSach = "";
+                            string masach ="";
                             int maThe = -1;
-                            if(FormMuonSach(font,maThe,tenSach)){
-                            bool ketQua= muonsach(dsdausach,dsdocgia,tenSach,maThe,thongbao);
+                            if(FormMuonSach(font,maThe,tenSach,masach)){
+                            bool ketQua= muonsach(dsdausach,dsdocgia,tenSach,masach,maThe,thongbao);
                             ShowMessage(font, thongbao);
                             if (ketQua== true) {
                                 if (maThe != -1) {
