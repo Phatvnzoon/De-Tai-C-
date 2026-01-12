@@ -33,7 +33,6 @@ struct nodeSach {
     nodeSach *next;
 };
 typedef nodeSach* SACH;
-
 struct DauSach {
     string ISBN;
     string TENSACH;
@@ -84,7 +83,6 @@ MT makeMT(){
 };
 struct TheDocGia {
     int MATHE=0;
-    int sum=0;
     string HO;
     string TEN;
     char PHAI[10];
@@ -144,6 +142,14 @@ typedef nodeDocGia* TreeDocGia;
 //      tmp->right = NULL;
 //      return tmp;
 // };
+bool sosanhten(TheDocGia a , TheDocGia b){
+    if(a.TEN == b.TEN){
+        return a.HO > b.HO;
+    }
+    else{
+        return a.TEN > b.TEN;
+    }
+}
 void caythedocgia(TreeDocGia & a,TreeDocGia p){ // thêm cây theo mã thẻ (độc giả)
     if (a ==NULL){
            a = p ;
@@ -156,17 +162,26 @@ void caythedocgia(TreeDocGia & a,TreeDocGia p){ // thêm cây theo mã thẻ (đ
         caythedocgia(a->right,p);
      }
 };
-void caythehoten(TreeDocGia & a,TreeDocGia p){ // thêm cây theo tên (độc giả)
-    if (a==NULL){
-           a = p ;
-           return;
+void sapxepten(TheDocGia p[],int x){
+    for(int i = 0 ; i < x ;++i){
+      for(int j = i+1; j < x; ++j){
+             if(sosanhten(p[i],p[j])){
+                TheDocGia tmp;
+                tmp = p[i];
+                p[i]= p[j];
+                p[j]= tmp;
+             }
+      }
     }
-    if(a->dg.sum > p->dg.sum){
-        caythedocgia(a->left,p);
+};
+void caythehoten(TreeDocGia & a,TheDocGia p[], int & x){ // thêm cây theo tên (độc giả)
+    if( a== NULL){
+        return ;
     }
-    else if(a->dg.sum <= p->dg.sum) {
-        caythedocgia(a->right,p);
-    }
+    caythehoten(a->left,p,x);
+      p[x] = a->dg;
+        x++;
+    caythehoten(a->right,p,x);
 };
 void incay(TreeDocGia a){ // in cây
     if (a==nullptr){
@@ -249,7 +264,6 @@ void xoathe(TreeDocGia& a, int x,int &s ){   // xóa thẻ trong cây
        a->dg.HO = tmp.HO;
        a->dg.TEN =tmp.TEN;
        strcpy(a->dg.PHAI,tmp.PHAI);
-       a->dg.sum = tmp.sum;
        return ;
     }
     dieuchinhmathe(a->right,tmp);
@@ -452,41 +466,41 @@ void checkdaymt(TreeDocGia & b,Date  a){
 //          }
 //     }
 // };
-/*void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
-    int cnt = 0;
-    DauSach tmp[10];
-    for (int i = 0; i < a->n ; ++i)
-    {    if(cnt < 10){
-         tmp[cnt].slm = a->nodes[i]->slm;
-         tmp[cnt].TENSACH = a->nodes[i]->TENSACH;
-         cnt++;
-    }
-        else {
-            for(int j = 0 ; j <cnt;++j){
-                 if(tmp[j].slm <a->nodes[i]->slm){
-                    tmp[j].slm = a->nodes[i]->slm;
-                    tmp[j].TENSACH =a->nodes[i]->TENSACH;
-                 }
-            }
-            for(int i = 0 ; i < cnt ; ++i){
-                for(int j = i +1 ; j < cnt ; ++j){
-                    if(tmp[i].slm < tmp[j].slm){
-                        DauSach temp;
-                        temp.slm = tmp[i].slm;
-                        temp.TENSACH=tmp[i].TENSACH;
-                        tmp[i].slm = tmp[j].slm;
-                        tmp[i].TENSACH=tmp[j].TENSACH;
-                        tmp[j].slm = temp.slm;
-                        tmp[j].TENSACH=temp.TENSACH;
-                    }
-                }
-            }
-        }
-    }
-    for(int i = 0 ; i < cnt; ++i){
-        // thieu in
-    }
-};*/
+// void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
+//     int cnt = 0;
+//     DauSach tmp[10];
+//     for (int i = 0; i < a->n ; ++i)
+//     {    if(cnt < 10){
+//          tmp[cnt].slm = a->nodes[i]->slm;
+//          tmp[cnt].TENSACH = a->nodes[i]->TENSACH;
+//          cnt++;
+//     }
+//         else {
+//             for(int j = 0 ; j <cnt;++j){
+//                  if(tmp[j].slm <a->nodes[i]->slm){
+//                     tmp[j].slm = a->nodes[i]->slm;
+//                     tmp[j].TENSACH =a->nodes[i]->TENSACH;
+//                  }
+//             }
+//             for(int i = 0 ; i < cnt ; ++i){
+//                 for(int j = i +1 ; j < cnt ; ++j){
+//                     if(tmp[i].slm < tmp[j].slm){
+//                         DauSach temp;
+//                         temp.slm = tmp[i].slm;
+//                         temp.TENSACH=tmp[i].TENSACH;
+//                         tmp[i].slm = tmp[j].slm;
+//                         tmp[i].TENSACH=tmp[j].TENSACH;
+//                         tmp[j].slm = temp.slm;
+//                         tmp[j].TENSACH=temp.TENSACH;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     for(int i = 0 ; i < cnt; ++i){
+//         // thieu in
+//     }
+// };
 void luudsquahan(TreeDocGia & a , DS_TheDocgia & b,Date c){
     if(a== NULL){
         return;
@@ -499,6 +513,16 @@ void luudsquahan(TreeDocGia & a , DS_TheDocgia & b,Date c){
         b.list[b.cnt++] = a->dg;
      }
     luudsquahan(a->right,b,c);
+};
+void luudsquahantheoten(TreeDocGia & a,Date c){ // fix trường hợp hiện theo tên vẫn chưa bị khóa nếu mượn quá hạn
+    if(a== NULL){
+        return;
+    }
+    else{
+        checkdaymt(a,c);
+    }
+    luudsquahantheoten(a->left,c);
+    luudsquahantheoten(a->right,c);
 };
 // void inquahan(DS_TheDocgia & a){ // câu i
 //     for(int i = 0 ; i < a.cnt; i++){
@@ -523,7 +547,7 @@ void savefiletree(TreeDocGia& a,ofstream& f){
         return;
     }
     savefiletree(a->left,f);
-    f<<a->dg.MATHE<<"|"<<a->dg.HO<<" "<<a->dg.TEN<<"|"<<a->dg.PHAI<<"|"<<a->dg.trangthai<<"|"<<a->dg.sum<<"|"<<a->dg.sachmuon<<"|"<<a->dg.quahan<<endl;
+    f<<a->dg.MATHE<<"|"<<a->dg.HO<<" "<<a->dg.TEN<<"|"<<a->dg.PHAI<<"|"<<a->dg.trangthai<<"|"<<a->dg.sachmuon<<"|"<<a->dg.quahan<<endl;
     MT p = a->dg.dsmuontra;
     if(p!=NULL){
     while(p!=NULL){
@@ -534,7 +558,7 @@ void savefiletree(TreeDocGia& a,ofstream& f){
     f<<"------------"<<endl;
     savefiletree(a->right,f);
 };
-void loadfiledocgia(TreeDocGia & a ,TreeDocGia & b, ifstream & f ){
+void loadfiledocgia(TreeDocGia & a , ifstream & f ){
     string doc;
     while(getline(f,doc)){
         MT head=NULL;MT tail = NULL;
@@ -544,13 +568,12 @@ void loadfiledocgia(TreeDocGia & a ,TreeDocGia & b, ifstream & f ){
         tmp.dsmuontra = NULL;
         getline(ss, s, '|'); tmp.MATHE = stoi(s);
         getline(ss, s, '|');
-        int pos = s.find(' ');
+        int pos = s.rfind(' ');
         if (pos != string::npos) {
         tmp.HO = s.substr(0,pos);
         tmp.TEN = s.substr(pos +1);}
         getline(ss, s, '|'); strcpy_s(tmp.PHAI, s.c_str());
         getline(ss, s, '|'); tmp.trangthai = stoi(s);
-        getline(ss, s, '|'); tmp.sum = stoi(s);
         getline(ss, s, '|'); tmp.sachmuon = stoi(s);
         getline(ss, s, '|'); tmp.quahan = stoi(s);
         getline(f,doc);
@@ -576,11 +599,7 @@ void loadfiledocgia(TreeDocGia & a ,TreeDocGia & b, ifstream & f ){
        TreeDocGia temp = new nodeDocGia();
        temp->dg = tmp;
        temp->left = temp->right = NULL;
-       TreeDocGia tempdocten = new nodeDocGia();
-       tempdocten->dg = tmp;
-       tempdocten->left = tempdocten->right = NULL;
        caythedocgia(a,temp);
-       caythehoten(b,tempdocten);
     }
 };
 void savefilesach(DS_DauSach &ds_dausach, ofstream &f){
