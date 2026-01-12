@@ -571,9 +571,6 @@ TreeDocGia FormTaoDocGia(const Font &font,TreeDocGia & b) {
                             mathe= 1000 + rand() % (10000 - 1000);
                         }
                         a.MATHE = mathe;
-                        a.sum = 0;
-                        for(char c : a.HO) a.sum += c;
-                        for(char c : a.TEN) a.sum += c;
                         a.trangthai = 1;
 
                         TreeDocGia tmp = new nodeDocGia();
@@ -815,9 +812,6 @@ bool FormSuaDocGia(const Font &font, TheDocGia &data) {
                         data.HO = tempCheck.HO;
                         data.TEN = tempCheck.TEN;
                         // TÍNH LẠI SUM
-                        data.sum = 0;
-                        for(char c : data.HO) data.sum += c;
-                        for(char c : data.TEN) data.sum += c;
                         
                         // --- TUYỆT ĐỐI KHÔNG ĐỤNG VÀO data.trangthai ---
                         // Như vậy trạng thái cũ vẫn được bảo toàn
@@ -1665,6 +1659,18 @@ void loadDocGiaToTable(TreeDocGia root, TableDisplay &table, int &cnt) {
     
     loadDocGiaToTable(root->right, table, cnt);
 }
+void loadTentoTalbe(TheDocGia p[],TableDisplay & table, int x ){
+    for(int i = 0 ; i < x; ++i){
+        vector<string> row;
+    row.push_back(to_string(i +1));
+    row.push_back(to_string(p[i].MATHE));
+    row.push_back(p[i].HO + " " + p[i].TEN);
+    row.push_back(string(p[i].PHAI));
+    row.push_back((p[i].trangthai == 1) ? "Hoạt động" : "Khóa");
+    row.push_back(to_string(p[i].sachmuon));
+    table.addRow(row);
+    }
+}
 void loadMuonTraToTable(MT head, TableDisplay &table,string ten,int x) {
     MT p = head;
     bool coSach = false;
@@ -1850,42 +1856,26 @@ void inquahan(DS_TheDocgia & a,TableDisplay & b){ // câu i
     }
 };
 void top10book(DS_DauSach & a, TableDisplay & b){  //10 sách dc mượn nhiều nhất (j)
-    int cnt = 0;
-    DauSach tmp[10];
-    for (int i = 0; i < a->n ; ++i)
-    {    if(cnt < 10){
-         tmp[cnt].slm = a->nodes[i]->slm;
-         tmp[cnt].TENSACH = a->nodes[i]->TENSACH; // thêm 10 phần tử đầu
-         cnt++;
+    DauSach *tmp[MAX_DAUSACH];
+    for(int i = 0 ; i < a->n;++i){
+            tmp[i] = a->nodes[i];
     }
-        else {   
-            for(int j = 0 ; j <cnt;++j){   // sort phần tử 11++ vào ds 10 phần tử
-                 if(tmp[j].slm <a->nodes[i]->slm){  
-                    tmp[j].slm = a->nodes[i]->slm;
-                    tmp[j].TENSACH =a->nodes[i]->TENSACH;
-                 }
-            }
-            for(int i = 0 ; i < cnt ; ++i){    // sắp xếp từ lớn đến bé
-                for(int j = i +1 ; j < cnt ; ++j){
-                    if(tmp[i].slm < tmp[j].slm){
-                        DauSach temp;
-                        temp.slm = tmp[i].slm;
-                        temp.TENSACH=tmp[i].TENSACH;
-                        tmp[i].slm = tmp[j].slm;
-                        tmp[i].TENSACH=tmp[j].TENSACH;
-                        tmp[j].slm = temp.slm;
-                        tmp[j].TENSACH=temp.TENSACH;
-                    }
-                }
+    for(int i = 0; i < a->n; ++i){
+        for(int j = i+1; j < a->n ; ++j){
+            if(tmp[i]->slm < tmp[j]->slm){
+                DauSach* tempp;
+                tempp = tmp[i];
+                tmp[i]= tmp[j];
+                tmp[j] = tempp;
             }
         }
     }
-    for(int i = 0 ; i < cnt; ++i){
+    for(int i = 0 ; i < 10; ++i){
         vector <string> row;
         row.push_back(to_string(i + 1));             // Cột TOP (1, 2, 3...)
-        row.push_back(a->nodes[i]->ISBN);
-        row.push_back(a->nodes[i]->TENSACH);
-        row.push_back(to_string(a->nodes[i]->slm));  // Cột Số lượt mượn
+        row.push_back(tmp[i]->ISBN);
+        row.push_back(tmp[i]->TENSACH);
+        row.push_back(to_string(tmp[i]->slm));  // Cột Số lượt mượn
         
         b.addRow(row);
     }
@@ -1894,12 +1884,12 @@ void top10book(DS_DauSach & a, TableDisplay & b){  //10 sách dc mượn nhiều
 int main() {
     DS_DauSach dsdausach = new DS_DAUSACH();
     TreeDocGia dsdocgia = NULL;
-    TreeDocGia dshoten = NULL;
+    TheDocGia p[500];
     DS_TheDocgia dsquahan ;
     srand(time(NULL));
     ifstream Fout("D:/code/thedocgiadata.txt");
     if (Fout.is_open()) {
-        loadfiledocgia(dsdocgia, dshoten, Fout);
+        loadfiledocgia(dsdocgia, Fout);
         Fout.close();
     }
     ifstream FoutSach("D:/code/danhmucsachdata.txt");
@@ -2025,11 +2015,14 @@ int main() {
             btnTabDocGia.colorIdle = colTabActive;
             tableDisplay.setHeaders(headerDocGia, widthDocGia);
             int stt = 0;
-            if(currentViewMaThe != -1){
-                loadDocGiaToTable(dshoten,tableDisplay,stt);
+            if(currentViewMaThe ==1){
+                int x = 0 ;
+                            caythehoten(dsdocgia,p,x);
+                            sapxepten(p,x);
+                            loadTentoTalbe(p,tableDisplay,x);
             }
             else{
-            loadDocGiaToTable(dsdocgia, tableDisplay,stt);}
+                loadDocGiaToTable(dsdocgia, tableDisplay,stt);}
             
         }
         else if (currentTab == TAB_MUONTRA) {
@@ -2111,10 +2104,6 @@ int main() {
                             TreeDocGia newNode = FormTaoDocGia(font,dsdocgia);
                             if (newNode != NULL) {
                                 caythedocgia(dsdocgia, newNode);
-                                TreeDocGia newNodetwo = new nodeDocGia();
-                                newNodetwo->dg = newNode->dg;
-                                newNodetwo->left = newNodetwo->right = NULL;
-                                caythehoten(dshoten,newNodetwo);
                                 RefreshList(); 
                             }
                         }
@@ -2126,9 +2115,6 @@ int main() {
                                 if(s==-1){
                                     ShowMessage(font,L"Vui Lòng Trả Sách Trước Khi Xóa Thẻ");
                                 }
-                                else{
-                                    xoathe(dshoten,maXoa,s);
-                                }
                                 RefreshList();
                             }
                         }
@@ -2138,7 +2124,6 @@ int main() {
                                 TheDocGia dgMoi; dgMoi.MATHE = maSua;
                                 if(FormSuaDocGia(font, dgMoi)) {
                                     dieuchinhmathe(dsdocgia, dgMoi);
-                                    dieuchinhmathe(dshoten,dgMoi);
                                     RefreshList();
                                 }
                             }
@@ -2147,7 +2132,6 @@ int main() {
                             int maKhoa = FormNhapMaXoa(font, dsdocgia, L"NHẬP MÃ CẦN MỞ KHÓA:");
                             if (maKhoa != -1) {
                                 mokhoathe(dsdocgia, maKhoa,1);
-                                mokhoathe(dshoten,maKhoa,1);
                                 RefreshList();
                             }
                         }
@@ -2299,7 +2283,6 @@ int main() {
                             if (status == 1) {
                                 ShowMessage(font, L"Đã cập nhật trạng thái MẤT SÁCH thành công!");
                                 mokhoathe(dsdocgia,maThe,0);
-                                mokhoathe(dshoten,maThe,0);
                                 RefreshList(); // Cập nhật lại bảng lần nữa để thấy trạng thái "Mất"
                             } 
                                else {
