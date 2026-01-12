@@ -1583,6 +1583,54 @@ void FormHienThiThongTinSach(DauSach* d, const Font &font) {
     }
 }
 
+// Hàm hiển thị popup chọn kiểu sắp xếp (Trả về 1: Tên, 2: Thể loại, 0: Hủy)
+int FormChonSapXep(const Font &font) {
+    RenderWindow popup(VideoMode({400, 220}), L"Tùy Chọn Sắp Xếp", Style::Titlebar | Style::Close);
+    popup.setFramerateLimit(60);
+
+    Text title(font);
+    title.setString(L"CHỌN KIỂU SẮP XẾP SÁCH");
+    title.setCharacterSize(20);
+    title.setFillColor(Color::Cyan);
+    title.setPosition({80.f, 30.f});
+
+    // Tạo 2 nút lựa chọn
+    Button btnByName(50.f, 100.f, 140.f, 45.f, "THEO TÊN", font, Color(70, 70, 80));
+    Button btnByCategory(210.f, 100.f, 140.f, 45.f, "THỂ LOẠI", font, Color(70, 70, 80));
+
+    while (popup.isOpen()) {
+        Vector2i pixelPos = Mouse::getPosition(popup);
+        Vector2f mousePos((float)pixelPos.x, (float)pixelPos.y);
+        
+        btnByName.update(mousePos);
+        btnByCategory.update(mousePos);
+
+        while (const optional event = popup.pollEvent()) {
+            if (event->is<Event::Closed>()) { popup.close(); return 0; }
+            
+            if (const auto* mouseBtn = event->getIf<Event::MouseButtonPressed>()) {
+                if (mouseBtn->button == Mouse::Button::Left) {
+                    if (btnByName.isClicked(mousePos)) {
+                        popup.close();
+                        return 1;
+                    }
+                    if (btnByCategory.isClicked(mousePos)) {
+                        popup.close();
+                        return 2;
+                    }
+                }
+            }
+        }
+
+        popup.clear(Color(45, 45, 50));
+        popup.draw(title);
+        btnByName.draw(popup);
+        btnByCategory.draw(popup);
+        popup.display();
+    }
+    return 0;
+}
+
 void loadDauSachToTable(DS_DauSach &ds, TableDisplay &table) {
     table.clear();
     if (ds == NULL || ds->n == 0) return;
@@ -1933,8 +1981,8 @@ int main() {
     Button btnSach_Xoa(x2, actionY, actionW, actionH, "XOÁ SÁCH", font, colBtnAction);
     Button btnSach_DieuChinh(x3, actionY, actionW, actionH, "SỬA THÔNG TIN", font, colBtnAction);
     Button btnSach_ThongTinSach(x4, actionY, actionW, actionH, "THÔNG TIN SÁCH", font, colBtnAction);
-    Button btnSach_InTheoTheLoai(x5, actionY, actionW, actionH, "HIỆN THEO THỂ LOẠI", font, colBtnAction);
-    Button btnSach_InTheoTen(x6, actionY, actionW, actionH, "HIỆN THEO TÊN", font, colBtnAction);
+    Button btnSach_SapXep(x5, actionY, actionW, actionH, "SẮP XẾP", font, colBtnAction);
+    Button btnSach_ThanhLySach(x6, actionY, actionW, actionH, "THANH LÝ SÁCH", font, colBtnAction);
 
     
     Button btnMuon_in(x1, actionY, actionW, actionH, "XEM CHI TIẾT", font, colBtnAction);
@@ -1942,7 +1990,7 @@ int main() {
     Button btnMuon_Muon(x3, actionY, actionW, actionH, "CHO MƯỢN", font, colBtnAction);
     Button btnMuon_QUAHAN(x4, actionY, actionW, actionH, "DANH SÁCH QUÁ HẠN", font, colBtnAction);
     Button btnMuon_Top10Sach(x5, actionY, actionW, actionH, "TOP 10 SÁCH MƯỢN", font, colBtnAction);
-    Button btnMuon_MATSACH(x6, actionY, actionW, actionH, "Báo Mất", font, colBtnAction);
+    Button btnMuon_MATSACH(x6, actionY, actionW, actionH, "BÁO MẤT", font, colBtnAction);
 
    
     float pageBtnY = 950.f;
@@ -2012,7 +2060,8 @@ int main() {
         else if (currentTab == TAB_DAUSACH) {
             btnSach_Them.update(mousePos); btnSach_Xoa.update(mousePos); 
             btnSach_DieuChinh.update(mousePos); btnSach_ThongTinSach.update(mousePos);
-            btnSach_InTheoTheLoai.update(mousePos); btnSach_InTheoTen.update(mousePos);
+            btnSach_SapXep.update(mousePos); btnSach_ThanhLySach.update(mousePos);
+
         }
         else if (currentTab == TAB_MUONTRA) {
             btnMuon_in.update(mousePos); btnMuon_Tra.update(mousePos);btnMuon_Muon.update(mousePos);btnMuon_QUAHAN.update(mousePos); btnMuon_Top10Sach.update(mousePos);
@@ -2171,17 +2220,22 @@ int main() {
                             }
                         }
                       
-                        if (btnSach_InTheoTheLoai.isClicked(clickPos)) {
-                            SortTheLoai(dsdausach);
-                            RefreshList(); 
-                            ShowMessage(font, L"Đã sắp xếp theo: Thể Loại");
+                        if (btnSach_SapXep.isClicked(clickPos)) {
+                            int lc = FormChonSapXep(font);
+                            if (lc == 1){
+                                SortTen(dsdausach);
+                                RefreshList();
+                                ShowMessage(font, L"Đã sắp xếp theo tên thành công!");
+                            }
+                            else if (lc == 2){
+                                SortTheLoai(dsdausach);
+                                RefreshList();
+                                ShowMessage(font, L"Đã sắp xếp theo thể loại thành công!");
+                            }
                         }
 
-                        
-                        if (btnSach_InTheoTen.isClicked(clickPos)) {
-                            SortTen(dsdausach);
-                            RefreshList(); 
-                            ShowMessage(font, L"Đã sắp xếp theo: Tên Sách");
+                        if (btnSach_ThanhLySach.isClicked(clickPos)) {
+                            //
                         }
                     }
                     else if (currentTab == TAB_MUONTRA) {
@@ -2277,7 +2331,7 @@ int main() {
         else if (currentTab == TAB_DAUSACH) {
             btnSach_Them.draw(Window); btnSach_Xoa.draw(Window); 
             btnSach_DieuChinh.draw(Window); btnSach_ThongTinSach.draw(Window);
-            btnSach_InTheoTheLoai.draw(Window); btnSach_InTheoTen.draw(Window);
+            btnSach_SapXep.draw(Window); btnSach_ThanhLySach.draw(Window);
         }
         else if (currentTab == TAB_MUONTRA) {
             btnMuon_in.draw(Window); btnMuon_Tra.draw(Window);btnMuon_Muon.draw(Window);btnMuon_QUAHAN.draw(Window); btnMuon_Top10Sach.draw(Window);
