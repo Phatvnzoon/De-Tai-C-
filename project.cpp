@@ -21,7 +21,7 @@
 
 using namespace std;
 const int MAX_DAUSACH = 10000;
-
+const int lichthang[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 struct Sach
 {
     string MASACH; // mã sách thư viện
@@ -337,7 +337,7 @@ void matsach(TreeDocGia &a, int x, string s, int &b)
         }
         while (p != NULL)
         {
-            if (p->mt.MASACH == s)
+            if (p->mt.TENSACH == s)
             {
                 p->mt.trangthai2 = 2;
                 a->dg.sachmuon--;
@@ -362,66 +362,45 @@ void mokhoathe(TreeDocGia &a, int x, int b)
     mokhoathe(a->left, x, b);
     mokhoathe(a->right, x, b);
 };
-// void indsmuontra(MT  a){   // in ds mượn trả đang mượn
-//     MT p = a;
-//     while(p != NULL){
-//         if(p->mt.trangthai2==0){
-//         cout << p->mt.MASACH <<" "<<p->mt.TENSACH<<" "<< p->mt.NgayMuon<<" "<<p->mt.NgayTra<<" "<<p->mt.trangthai2<<endl;
-//         }
-//         p = p->next;
-//     }
-// };
-// void checkdsmuonsach(TreeDocGia  a, int x ){  // in danh sách mượn trả
-//     if(a == NULL){
-//         return;
-//     }
-//     else if(a->dg.MATHE > x){
-//         checkdsmuonsach(a->left,x);
-//     }
-//     else if(a->dg.MATHE < x){
-//         checkdsmuonsach(a->right,x);
-//     }
-//     else{
-//         indsmuontra(a->dg.dsmuontra);
-//     }
-// };
-// bool changebook(DS_DauSach & a,const string s,const string t,int x,String & thongbao){
-//     for(int i = 0 ; i < a->n;++i){
-//         if(a->nodes[i]->TENSACH == t){
-//             SACH tmp = a->nodes[i]->dms;
-//             while(tmp != NULL){
-//                 if(tmp->data.MASACH == s){
-//                     tmp->data.trangthai =x;
-//                     thongbao = "Trả Thành Công!";
-//                     return true ;
-//                 }
-//                 tmp = tmp->next;
-//             }
-//             thongbao = "Mã Sách Không Tồn Tại!";
-//             return false;
-//         }
-//         thongbao = "Tên Sách Không Tồn Tại!";
-//         return false;
-//     }
-// };
-int tinhngay(string &s)
+bool Namnhuan(int x)
+{
+    return (x % 400 == 0) || (x % 4 == 0 && x % 100 != 0);
+}
+long long tinhngay(string s)
 {
     stringstream ss(s);
     string in;
-    int ketqua = 0;
+    int d, m, y;
     getline(ss, in, '/');
-    ketqua += stoi(in);
+    d = stoi(in);
     getline(ss, in, '/');
-    ketqua += stoi(in) * 30;
+    m = stoi(in);
     getline(ss, in, '/');
-    ketqua += stoi(in) * 365;
-    return ketqua;
+    y = stoi(in);
+    long long total = 0;
+    for (int i = 1; i < y; i++)
+    {
+        total += Namnhuan(i) ? 366 : 365;
+    }
+    for (int i = 1; i < m; i++)
+    {
+        if (i == 2 && Namnhuan(y))
+        {
+            total += 29;
+        }
+        else
+        {
+            total += lichthang[i];
+        }
+    }
+    total += d;
+    return total;
 }
 void checkdaymt(TreeDocGia &b, Date a)
 {
     MT p = b->dg.dsmuontra;
-    string s;
-    int ketquat = a.day + a.month * 30 + a.year * 365;
+    string homnay = to_string(a.day) + "/" + to_string(a.month) + "/" + to_string(a.year);
+    int ketquat = tinhngay(homnay);
     while (p != NULL)
     {
         int ketqua;
@@ -430,7 +409,7 @@ void checkdaymt(TreeDocGia &b, Date a)
         {
             ketqua = tinhngay(p->mt.NgayMuon);
             ngaytra = tinhngay(p->mt.NgayTra);
-            if (ngaytra - ketqua >= 7)
+            if (ngaytra - ketqua > 7)
             {
                 b->dg.trangthai = 0;
                 b->dg.quahan = ngaytra - ketqua;
@@ -439,7 +418,7 @@ void checkdaymt(TreeDocGia &b, Date a)
             continue;
         }
         ketqua = tinhngay(p->mt.NgayMuon);
-        if (ketquat - ketqua >= 7)
+        if (ketquat - ketqua > 7)
         {
             b->dg.trangthai = 0;
             b->dg.quahan = ketquat - ketqua;
@@ -447,124 +426,6 @@ void checkdaymt(TreeDocGia &b, Date a)
         p = p->next;
     }
 };
-// void muonsach(DS_DauSach & a, TreeDocGia & b,const string s,int x){
-//     if(b == NULL){
-//         return;
-//     }
-//     else if(b->dg.MATHE > x){
-//         muonsach(a,b->left,s,x);
-//     }
-//     else if(b->dg.MATHE < x){
-//         muonsach(a,b->right,s,x);
-//     }
-//     else {
-//         Date t = time();
-//         if(b->dg.dsmuontra!=NULL){
-//             checkdaymt(b,t);
-//         };
-//         if(b->dg.sachmuon >= 3){
-//           cout << "sinh vien nay dang muon 3 cuon sach"<<endl;
-//           return;
-//         }
-//         if(b->dg.trangthai == 0){
-//              cout << "the bi khoa "<<endl;
-//              return;
-//         }
-//         for(int i = 0 ; i < a->n;++i){
-//             if(a->nodes[i]->TENSACH == s){ // dò tên sách trùng
-//                 SACH temp = a->nodes[i]->dms;
-//                 while(temp != NULL){
-//                     if(temp->data.trangthai == 0){ // dò sách đó có ai mượn chưa
-//                         MT tmp = makeMT();
-//                         MT p = b->dg.dsmuontra;
-//                          p = tmp;
-//                          tmp->mt.MASACH = temp->data.MASACH;
-//                          tmp->mt.TENSACH = a->nodes[i]->TENSACH;
-//                          tmp->mt.trangthai2 = 0;
-//                          b->dg.sachmuon ++;
-//                          temp->data.trangthai =1;
-//                          a->nodes[i]->slm ++;
-//                          tmp->mt.NgayMuon = to_string(t.day) + "/"+ to_string(t.month) + "/" +to_string(t.year);
-//                         if(b->dg.dsmuontra == NULL){
-//                             b->dg.dsmuontra = tmp;
-//                          cout << " muon thanh cong"<<endl;
-//                          return;
-//                         }
-//                         else{
-//                             while(p->next!=NULL){
-//                                 p = p->next;
-//                             }
-//                              p->next = tmp;
-//                              cout << " muon thanh cong"<<endl;
-//                             return;
-//                         }
-//                     }
-//                     temp = temp->next;
-//                 }
-//             }
-//         }
-//     }
-// };
-// void trasach(TreeDocGia& a,DS_DauSach & b, int x,string s, string t){
-//      if(a == NULL){
-//         return;
-//     }
-//     else if(a->dg.MATHE > x){
-//        trasach(a->left,b,x,s,t);
-//     }
-//     else if(a->dg.MATHE < x){
-//         trasach(a->right,b,x,s,t);
-//     }
-//     else{
-//         Date TIME = time();
-//          changebook(b,s,t,0);
-
-//          MT temp = a->dg.dsmuontra;
-//          while(temp != NULL){
-//             if (temp->mt.MASACH == s){
-//                 temp->mt.trangthai2 = 1 ;
-//                 temp->mt.NgayTra = to_string(TIME.day)+"/"+to_string(TIME.month)+"/"+to_string(TIME.year);
-//                 return;
-//             }
-//             temp = temp->next;
-//          }
-//     }
-// };
-// void top10book(DS_DauSach & a){  //10 sách dc mượn nhiều nhất (j)
-//     int cnt = 0;
-//     DauSach tmp[10];
-//     for (int i = 0; i < a->n ; ++i)
-//     {    if(cnt < 10){
-//          tmp[cnt].slm = a->nodes[i]->slm;
-//          tmp[cnt].TENSACH = a->nodes[i]->TENSACH;
-//          cnt++;
-//     }
-//         else {
-//             for(int j = 0 ; j <cnt;++j){
-//                  if(tmp[j].slm <a->nodes[i]->slm){
-//                     tmp[j].slm = a->nodes[i]->slm;
-//                     tmp[j].TENSACH =a->nodes[i]->TENSACH;
-//                  }
-//             }
-//             for(int i = 0 ; i < cnt ; ++i){
-//                 for(int j = i +1 ; j < cnt ; ++j){
-//                     if(tmp[i].slm < tmp[j].slm){
-//                         DauSach temp;
-//                         temp.slm = tmp[i].slm;
-//                         temp.TENSACH=tmp[i].TENSACH;
-//                         tmp[i].slm = tmp[j].slm;
-//                         tmp[i].TENSACH=tmp[j].TENSACH;
-//                         tmp[j].slm = temp.slm;
-//                         tmp[j].TENSACH=temp.TENSACH;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//     for(int i = 0 ; i < cnt; ++i){
-//         // thieu in
-//     }
-// };
 void luudsquahan(TreeDocGia &a, DS_TheDocgia &b, Date c)
 {
     if (a == NULL)
@@ -595,24 +456,26 @@ void luudsquahantheoten(TreeDocGia &a, Date c)
     luudsquahantheoten(a->left, c);
     luudsquahantheoten(a->right, c);
 };
-// void inquahan(DS_TheDocgia & a){ // câu i
-//     for(int i = 0 ; i < a.cnt; i++){
-//         for(int j = i+1; j < a.cnt; j ++){
-//             if(a.list[i].quahan < a.list[j].quahan){
-//                 TheDocGia tmp = a.list[i];
-//                 a.list[i] = a.list[j];
-//                 a.list[j] = tmp;
-//             }
-//         }
-//     }
-//     for(int i = 0 ; i < a.cnt; i++){
-//         cout << a.list[i].MATHE <<endl;
-//         cout << a.list[i].HO <<" "<<a.list[i].TEN <<endl;
-//         cout << a.list[i].PHAI <<endl;
-//         cout << a.list[i].quahan <<endl;
-//         cout << a.list[i].trangthai <<endl;
-//     }
-// };
+bool muontrungsach(TreeDocGia &b, string t)
+{
+    if (b == NULL)
+    {
+        return false;
+    }
+    else
+    {
+        MT p = b->dg.dsmuontra;
+        while (p != NULL)
+        {
+            if (p->mt.TENSACH == t && p->mt.trangthai2 == 0)
+            {
+                return false;
+            }
+            p = p->next;
+        }
+        return true;
+    }
+};
 void savefiletree(TreeDocGia &a, ofstream &f)
 {
     if (a == NULL)
@@ -826,7 +689,7 @@ void loadfilesach(DS_DauSach &ds_dausach, ifstream &f)
 
 // Tạo mã sách có ISBN + 6 chữ số(tự động)
 string RandomMaSach(string &ISBN)
-{ 
+{
     string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     string result;
     while (1)
@@ -870,7 +733,7 @@ string RandomVitriSach()
     return dske[r];
 }
 
-// Insertion Sort theo TÊN SÁCH (Tăng dần) 
+// Insertion Sort theo TÊN SÁCH (Tăng dần)
 void SortTen(DS_DauSach &ds_dausach)
 {
     // Duyệt từ phần tử thứ 2 trở đi
@@ -927,8 +790,8 @@ void ThemBanSao(DS_DauSach &ds_dausach, string isbn, int soLuongThem)
         return;
 
     DauSach *book = ds_dausach->nodes[pos];
-    
-    //Thêm bản sao dựa trên số lượng thêm
+
+    // Thêm bản sao dựa trên số lượng thêm
     for (int k = 0; k < soLuongThem; k++)
     {
         SACH newSach = new nodeSach();
