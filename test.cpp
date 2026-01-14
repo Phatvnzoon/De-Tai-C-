@@ -982,8 +982,8 @@ bool FormTraSach(const Font &font, int &outMaThe, string &outMaSach, string &out
 
     // Setup 3 ô nhập liệu
     InputField inputMaThe(50.f, 50.f, 300.f, 30.f, "MÃ ĐỘC GIẢ:", font);
-    InputField inputMaSach(50.f, 130.f, 300.f, 30.f, "MÃ SÁCH:", font);
-    InputField inputTenSach(50.f, 210.f, 300.f, 30.f, "TÊN SÁCH:", font);
+    InputField inputMaSach(50.f, 210.f, 300.f, 30.f, "MÃ SÁCH (ISBN):", font);
+    InputField inputTenSach(50.f, 130.f, 300.f, 30.f, "TÊN SÁCH:", font);
 
     // Nút bấm
     RectangleShape btnOk({120.f, 40.f});
@@ -1294,7 +1294,7 @@ DauSach *FormNhapSach(const Font &font, DS_DauSach ds_dausach, bool modeEdit, in
     RenderWindow popup(VideoMode({500u, 700u}), modeEdit ? L"Hiệu Chỉnh Sách" : L"Thêm Đầu Sách", Style::Titlebar | Style::Close);
     popup.setFramerateLimit(60);
 
-    // Tạo các ô input 
+    // Tạo các ô input
     InputField inpISBN(50, 50, 400, 30, "ISBN (Tối đa 13 ký tự):", font);
     InputField inpTen(50, 130, 400, 30, "Tên Sách:", font);
     InputField inpTrang(50, 210, 150, 30, "Số Trang:", font);
@@ -1304,7 +1304,7 @@ DauSach *FormNhapSach(const Font &font, DS_DauSach ds_dausach, bool modeEdit, in
 
     InputField inpSoLuong(50, 450, 150, 30, "Số lượng bản sao:", font);
 
-    // Nút Thêm bản sao 
+    // Nút Thêm bản sao
     RectangleShape btnAddCopy({40.f, 30.f});
     btnAddCopy.setPosition({210.f, 450.f});
     btnAddCopy.setFillColor(Color(0, 150, 0));
@@ -1318,7 +1318,7 @@ DauSach *FormNhapSach(const Font &font, DS_DauSach ds_dausach, bool modeEdit, in
     txtErr.setCharacterSize(16);
     txtErr.setPosition(Vector2f(50.f, 600.f));
 
-    // Nút Lưu 
+    // Nút Lưu
     RectangleShape btnSave(Vector2f(140.f, 45.f));
     btnSave.setPosition(Vector2f(180.f, 530.f));
     btnSave.setFillColor(Color::Blue);
@@ -1388,7 +1388,7 @@ DauSach *FormNhapSach(const Font &font, DS_DauSach ds_dausach, bool modeEdit, in
                 {
                     Vector2f mousePos(static_cast<float>(mouseBtn->position.x), static_cast<float>(mouseBtn->position.y));
 
-                    // Xử lý nút Thêm bản sao (+) 
+                    // Xử lý nút Thêm bản sao (+)
                     if (modeEdit && btnAddCopy.getGlobalBounds().contains(mousePos))
                     {
                         string strAdd = FormNhapChuoi(font, "NHẬP SỐ LƯỢNG THÊM:", "SỐ LƯỢNG:");
@@ -1406,7 +1406,7 @@ DauSach *FormNhapSach(const Font &font, DS_DauSach ds_dausach, bool modeEdit, in
 
                     if (btnSave.getGlobalBounds().contains(mousePos))
                     {
-                        // Kiểm tra Rỗng 
+                        // Kiểm tra Rỗng
                         if (inpISBN.content.empty() || inpTen.content.empty())
                         {
                             txtErr.setFillColor(Color::Red);
@@ -1495,7 +1495,7 @@ DauSach *FormNhapSach(const Font &font, DS_DauSach ds_dausach, bool modeEdit, in
                 }
             }
         }
-        //Phần vẽ Form (giao diện)
+        // Phần vẽ Form (giao diện)
         popup.clear(Color(30, 30, 35));
         inpISBN.draw(popup);
         inpTen.draw(popup);
@@ -2006,7 +2006,7 @@ void FormThanhLySach(const Font &font, DS_DauSach &ds_dausach)
             else if (p->data.trangthai == 1)
                 tt = "Đang mượn";
             else if (p->data.trangthai == 2)
-                tt = "Đã thanh lý"; 
+                tt = "Đã thanh lý";
 
             row.push_back(tt);
             row.push_back(p->data.vitri);
@@ -2291,14 +2291,19 @@ bool muonsach(DS_DauSach &a, TreeDocGia &b, const string s, const string m, int 
         {
             checkdaymt(b, t);
         };
+        if (b->dg.trangthai == 0)
+        {
+            thongbao = L"Thất Bại: Thẻ độc giả này bị khóa";
+            return false;
+        }
         if (b->dg.sachmuon >= 3)
         {
             thongbao = L"Thất bại: Độc giả đã mượn đủ 3 cuốn sách";
             return false;
         }
-        if (b->dg.trangthai == 0)
+        if (muontrungsach(b, s) == false)
         {
-            thongbao = L"Thất Bại: Thẻ độc giả này bị khóa";
+            thongbao = L"Độc giả đang mượn sách này tương tự";
             return false;
         }
         for (int i = 0; i < a->n; ++i)
@@ -2311,9 +2316,14 @@ bool muonsach(DS_DauSach &a, TreeDocGia &b, const string s, const string m, int 
                 {
                     if (temp->data.MASACH == m)
                     { // Tìm thấy cuốn chưa ai mượn
-                        if (temp->data.trangthai != 0)
+                        if (temp->data.trangthai == 1)
                         {
                             thongbao = L"Sách Này Đã Có Người Mượn";
+                            return false;
+                        }
+                        if (temp->data.trangthai == 2)
+                        {
+                            thongbao = L"Sách đã được thanh lý!";
                             return false;
                         }
                         MT tmp = makeMT();
@@ -2342,7 +2352,7 @@ bool muonsach(DS_DauSach &a, TreeDocGia &b, const string s, const string m, int 
                         }
 
                         thongbao = L"Mượn Sách Thành Công " + s;
-                        return true; //
+                        return true;
                     }
                     temp = temp->next;
                 }
@@ -2749,12 +2759,16 @@ int main()
                             int maXoa = FormNhapMaXoa(font, dsdocgia, L"NHẬP MÃ CẦN XÓA:");
                             if (maXoa != -1)
                             {
-                                xoathe(dsdocgia, maXoa, s);
-                                if (s == -1)
+                                String thongBaoXoa = L"Bạn có chắc muốn xóa độc giả mã: " + to_wstring(maXoa) + L"?\n(Hành động này không thể hoàn tác)";
+                                if (ShowConfirm(font, thongBaoXoa))
                                 {
-                                    ShowMessage(font, L"Vui Lòng Trả Sách Trước Khi Xóa Thẻ");
+                                    xoathe(dsdocgia, maXoa, s);
+                                    if (s == -1)
+                                    {
+                                        ShowMessage(font, L"Vui Lòng Trả Sách Trước Khi Xóa Thẻ");
+                                    }
+                                    RefreshList();
                                 }
-                                RefreshList();
                             }
                         }
                         if (btnEdit.isClicked(clickPos))
@@ -2801,7 +2815,8 @@ int main()
                             if (pMoi != NULL)
                             {
                                 ThemDauSach(font, dsdausach, pMoi);
-                                if (currentSortMode == 2){
+                                if (currentSortMode == 2)
+                                {
                                     SortTen(dsdausach);
                                 }
                                 RefreshList();
@@ -2957,14 +2972,14 @@ int main()
                                 Window.clear(Color(30, 32, 40));
                                 tableDisplay.draw(Window); // Vẽ bảng mới
                                 Window.display();
-                                string maSachMat = FormNhapChuoi(font, "NHẬP MÃ SÁCH BỊ MẤT:", "MÃ SÁCH:");
+                                string TenSachMat = FormNhapChuoi(font, "NHẬP TÊN SÁCH BỊ MẤT:", "TÊN SÁCH:");
 
-                                if (!maSachMat.empty())
+                                if (!TenSachMat.empty())
                                 {
-                                    string maSachChuan = "";
-                                    chuanhoamasach(maSachMat, maSachChuan);
+                                    string TenSachChuan = "";
+                                    stringdg(TenSachMat, TenSachChuan);
                                     int status = 0;
-                                    matsach(dsdocgia, maThe, maSachChuan, status);
+                                    matsach(dsdocgia, maThe, TenSachChuan, status);
                                     if (status == 1)
                                     {
                                         ShowMessage(font, L"Đã cập nhật trạng thái MẤT SÁCH thành công!");
